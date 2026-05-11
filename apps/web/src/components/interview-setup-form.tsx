@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type React from "react";
 import {
@@ -7,6 +8,7 @@ import {
   type CreateInterviewInput,
 } from "@ai-interview/shared";
 import { useCreateInterview } from "@/features/interviews/use-create-interview";
+import { saveInterviewSession } from "@/features/interviews/session-storage";
 import { z } from "zod";
 
 type FormState = {
@@ -31,6 +33,7 @@ function formatIssue(issue: z.ZodIssue) {
 }
 
 export function InterviewSetupForm() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialForm);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const {
@@ -74,7 +77,10 @@ export function InterviewSetupForm() {
     }
 
     setValidationErrors([]);
-    await create(result.data);
+    const interview = await create(result.data);
+
+    saveInterviewSession(interview);
+    router.push(`/interviews/${interview.id}`);
   }
 
   const fieldClass = "grid gap-2";
