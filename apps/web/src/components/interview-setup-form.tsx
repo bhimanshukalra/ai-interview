@@ -1,14 +1,12 @@
 "use client";
 
-import { SubmitEvent, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type React from "react";
 import {
-  CreateInterviewResponseSchema,
   CreateInterviewSchema,
-  type CreateInterviewResponse,
   type CreateInterviewInput,
 } from "@ai-interview/shared";
-import { getApiBaseUrl } from "@/lib/config";
+import { useCreateInterview } from "@/features/interviews/use-create-interview";
 import { z } from "zod";
 
 type FormState = {
@@ -34,10 +32,13 @@ function formatIssue(issue: z.ZodIssue) {
 
 export function InterviewSetupForm() {
   const [form, setForm] = useState<FormState>(initialForm);
-  const [createdInterview, setCreatedInterview] =
-    useState<CreateInterviewResponse | null>(null);
-  const [errors, setErrors] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const {
+    error: submitError,
+    interview: createdInterview,
+    isPending,
+    create,
+  } = useCreateInterview();
 
   const preview = useMemo(() => {
     const topic = form.topic.trim();
@@ -58,7 +59,7 @@ export function InterviewSetupForm() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const result = CreateInterviewSchema.safeParse({
@@ -68,44 +69,12 @@ export function InterviewSetupForm() {
     });
 
     if (!result.success) {
-      setCreatedInterview(null);
-      setErrors(result.error.issues.map(formatIssue));
+      setValidationErrors(result.error.issues.map(formatIssue));
       return;
     }
 
-    setErrors([]);
-    setCreatedInterview(null);
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch(`${getApiBaseUrl()}/interviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(result.data),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const payload = CreateInterviewResponseSchema.parse(
-        await response.json(),
-      );
-      setCreatedInterview(payload);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Could not create the interview.";
-
-      setErrors([
-        `${message} Make sure the Hono API is running with pnpm dev:api.`,
-      ]);
-    } finally {
-      setIsSubmitting(false);
-    }
+    setValidationErrors([]);
+    await create(result.data);
   }
 
   const fieldClass = "grid gap-2";
@@ -209,14 +178,23 @@ export function InterviewSetupForm() {
           ))}
         </div>
 
-        {errors.length > 0 ? (
+        {validationErrors.length > 0 ? (
           <div
             className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 sm:col-span-2"
             role="alert"
           >
-            {errors.map((error) => (
+            {validationErrors.map((error) => (
               <p key={error}>{error}</p>
             ))}
+          </div>
+        ) : null}
+
+        {submitError ? (
+          <div
+            className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 sm:col-span-2"
+            role="alert"
+          >
+            <p>{submitError}</p>
           </div>
         ) : null}
 
@@ -250,10 +228,10 @@ export function InterviewSetupForm() {
 
         <button
           className="min-h-12 cursor-pointer rounded-lg bg-teal-700 px-4 py-3 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:col-span-2"
-          disabled={isSubmitting}
+          disabled={isPending}
           type="submit"
         >
-          {isSubmitting ? "Creating interview..." : "Create interview"}
+          {isPending ? "Creating interview..." : "Create interview"}
         </button>
       </form>
     </section>
