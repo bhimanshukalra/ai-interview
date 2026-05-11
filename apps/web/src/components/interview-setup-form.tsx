@@ -1,10 +1,14 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { SubmitEvent, useMemo, useState } from "react";
+import type React from "react";
 import {
+  CreateInterviewResponseSchema,
   CreateInterviewSchema,
+  type CreateInterviewResponse,
   type CreateInterviewInput,
 } from "@ai-interview/shared";
+import { getApiBaseUrl } from "@/lib/config";
 import { z } from "zod";
 
 type FormState = {
@@ -30,8 +34,10 @@ function formatIssue(issue: z.ZodIssue) {
 
 export function InterviewSetupForm() {
   const [form, setForm] = useState<FormState>(initialForm);
-  const [submitted, setSubmitted] = useState<CreateInterviewInput | null>(null);
+  const [createdInterview, setCreatedInterview] =
+    useState<CreateInterviewResponse | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const preview = useMemo(() => {
     const topic = form.topic.trim();
@@ -52,7 +58,7 @@ export function InterviewSetupForm() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const result = CreateInterviewSchema.safeParse({
@@ -62,13 +68,44 @@ export function InterviewSetupForm() {
     });
 
     if (!result.success) {
-      setSubmitted(null);
+      setCreatedInterview(null);
       setErrors(result.error.issues.map(formatIssue));
       return;
     }
 
     setErrors([]);
-    setSubmitted(result.data);
+    setCreatedInterview(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/interviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(result.data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const payload = CreateInterviewResponseSchema.parse(
+        await response.json(),
+      );
+      setCreatedInterview(payload);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not create the interview.";
+
+      setErrors([
+        `${message} Make sure the Hono API is running with pnpm dev:api.`,
+      ]);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const fieldClass = "grid gap-2";
@@ -86,8 +123,8 @@ export function InterviewSetupForm() {
           Create an interview
         </h1>
         <p className="mt-4 text-lg leading-8 text-stone-600">
-          Choose the interview shape. This step validates the payload locally
-          before we connect it to the Hono API.
+          Choose the interview shape. Submitting creates a mock interview
+          session through the Hono API.
         </p>
       </div>
 
@@ -183,23 +220,40 @@ export function InterviewSetupForm() {
           </div>
         ) : null}
 
-        {submitted ? (
+        {createdInterview ? (
           <div
             className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 sm:col-span-2"
             role="status"
           >
-            <p className="font-semibold">Interview setup is valid.</p>
-            <pre className="mt-3 overflow-x-auto text-xs">
-              {JSON.stringify(submitted, null, 2)}
-            </pre>
+            <p className="font-semibold">Interview created.</p>
+            <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-semibold uppercase text-emerald-800">
+                  Session
+                </dt>
+                <dd className="break-all">{createdInterview.id}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase text-emerald-800">
+                  Questions
+                </dt>
+                <dd>{createdInterview.questions.length}</dd>
+              </div>
+            </dl>
+            <ol className="mt-4 grid gap-2">
+              {createdInterview.questions.map((question) => (
+                <li key={question.id}>{question.question}</li>
+              ))}
+            </ol>
           </div>
         ) : null}
 
         <button
-          className="min-h-12 rounded-lg bg-teal-700 px-4 py-3 font-bold text-white transition hover:bg-teal-800 sm:col-span-2 cursor-pointer"
+          className="min-h-12 cursor-pointer rounded-lg bg-teal-700 px-4 py-3 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:col-span-2"
+          disabled={isSubmitting}
           type="submit"
         >
-          Validate setup
+          {isSubmitting ? "Creating interview..." : "Create interview"}
         </button>
       </form>
     </section>

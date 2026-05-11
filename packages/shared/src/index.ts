@@ -24,6 +24,13 @@ export const InterviewQuestionSchema = z.object({
   })
 });
 
+export const CreateInterviewResponseSchema = z.object({
+  id: z.string(),
+  status: z.literal('created'),
+  input: CreateInterviewSchema,
+  questions: z.array(InterviewQuestionSchema)
+});
+
 export const AnswerEvaluationSchema = z.object({
   score: z.number().min(0).max(10),
   summary: z.string(),
@@ -34,4 +41,5 @@ export const AnswerEvaluationSchema = z.object({
 
 export type CreateInterviewInput = z.infer<typeof CreateInterviewSchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
+export type CreateInterviewResponse = z.infer<typeof CreateInterviewResponseSchema>;
 export type AnswerEvaluation = z.infer<typeof AnswerEvaluationSchema>;
