@@ -7,6 +7,7 @@ import type {
 } from "@ai-interview/shared";
 import { ApiError } from "@/lib/api/errors";
 import { createInterview } from "./api";
+import { interviewQueryKeys } from "./query-keys";
 
 type CreateInterviewMutationError = ApiError | Error;
 
@@ -16,7 +17,7 @@ export function useCreateInterview() {
     CreateInterviewMutationError,
     CreateInterviewInput
   >({
-    mutationKey: ["interviews", "create"],
+    mutationKey: interviewQueryKeys.create,
     mutationFn: createInterview,
   });
 

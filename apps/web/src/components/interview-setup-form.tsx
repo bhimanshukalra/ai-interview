@@ -8,7 +8,6 @@ import {
   type CreateInterviewInput,
 } from "@ai-interview/shared";
 import { useCreateInterview } from "@/features/interviews/use-create-interview";
-import { saveInterviewSession } from "@/features/interviews/session-storage";
 import { z } from "zod";
 
 type FormState = {
@@ -79,7 +78,6 @@ export function InterviewSetupForm() {
     setValidationErrors([]);
     const interview = await create(result.data);
 
-    saveInterviewSession(interview);
     router.push(`/interviews/${interview.id}`);
   }
 

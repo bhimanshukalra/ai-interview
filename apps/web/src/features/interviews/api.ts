@@ -21,3 +21,13 @@ export async function createInterview(input: CreateInterviewInput): Promise<Crea
 
   return CreateInterviewResponseSchema.parse(await response.json());
 }
+
+export async function getInterview(id: string): Promise<CreateInterviewResponse> {
+  const response = await fetch(`${getApiBaseUrl()}/interviews/${id}`);
+
+  if (!response.ok) {
+    throw await createApiError(response);
+  }
+
+  return CreateInterviewResponseSchema.parse(await response.json());
+}

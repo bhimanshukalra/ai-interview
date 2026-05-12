@@ -1,8 +1,10 @@
 import type {
   CreateInterviewInput,
   CreateInterviewResponse,
-  InterviewQuestion
-} from '@ai-interview/shared';
+  InterviewQuestion,
+} from "@ai-interview/shared";
+
+const interviews = new Map<string, CreateInterviewResponse>();
 
 function createMockQuestions(input: CreateInterviewInput): InterviewQuestion[] {
   const topic = input.topic ?? input.role;
@@ -17,19 +19,30 @@ function createMockQuestions(input: CreateInterviewInput): InterviewQuestion[] {
       difficulty: input.level,
       type: input.type,
       rubric: {
-        excellent: 'Clear, accurate answer with a practical example and relevant tradeoffs.',
-        good: 'Mostly accurate answer with some detail and at least one concrete example.',
-        weak: 'Vague, incomplete, or missing a practical example.'
-      }
+        excellent:
+          "Clear, accurate answer with a practical example and relevant tradeoffs.",
+        good: "Mostly accurate answer with some detail and at least one concrete example.",
+        weak: "Vague, incomplete, or missing a practical example.",
+      },
     };
   });
 }
 
-export function createInterview(input: CreateInterviewInput): CreateInterviewResponse {
-  return {
+export function createInterview(
+  input: CreateInterviewInput,
+): CreateInterviewResponse {
+  const interview: CreateInterviewResponse = {
     id: crypto.randomUUID(),
-    status: 'created',
+    status: "created",
     input,
-    questions: createMockQuestions(input)
+    questions: createMockQuestions(input),
   };
+
+  interviews.set(interview.id, interview);
+
+  return interview;
+}
+
+export function getInterview(id: string) {
+  return interviews.get(id) ?? null;
 }
