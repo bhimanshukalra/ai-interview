@@ -5,16 +5,24 @@
   "scripts": {
     "dev": "wrangler dev src/routes.ts --port 8787",
     "deploy": "wrangler deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-interview/shared": "workspace:*",
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.7.10"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250510.0",
+    "@types/pg": "^8.20.0",
+    "dotenv": "^17.4.2",
+    "drizzle-kit": "^0.31.10",
+    "pg": "^8.20.0",
     "typescript": "^5.8.3",
     "wrangler": "^4.14.4"
   }
