@@ -7,7 +7,24 @@ import { interviewRoutes } from './routes/interviews';
 
 const app = new Hono<Env>();
 
-app.use('*', cors());
+const localOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+app.use(
+  '*',
+  cors({
+    origin: (origin, c) => {
+      const configuredOrigins =
+        c.env.CORS_ORIGIN?.split(',').map((item: string) => item.trim()).filter(Boolean) ?? [];
+      const allowedOrigins = [...configuredOrigins, ...localOrigins];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        return origin;
+      }
+
+      return null;
+    }
+  })
+);
 
 app.get('/health', (c) => c.json({ ok: true, service: 'ai-interview-api' }));
 app.route('/auth', authRoutes);

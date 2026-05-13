@@ -39,6 +39,7 @@ Set production secrets with `wrangler secret put` from `apps/api` before deployi
 Required Cloudflare secret:
 
 - `DATABASE_URL` - Neon pooled PostgreSQL connection string with SSL enabled
+- `CORS_ORIGIN` - deployed frontend origin, for example `https://ai-interview.example.com`
 
 ### Neon
 
@@ -80,7 +81,7 @@ pnpm wrangler secret put DATABASE_URL
 - [x] Configure Vercel deployment for `apps/web`.
 - [x] Configure Cloudflare Workers deployment for `apps/api`.
 - [x] Configure Neon environment variables.
-- [ ] Configure CORS for the deployed frontend URL.
+- [x] Configure CORS for the deployed frontend URL.
 - [ ] Configure production `AI_*` environment variables.
 - [ ] Add better loading states.
 - [ ] Add "back to setup" and "restart interview" actions.
