@@ -26,6 +26,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     () => Object.values(answers).filter((answer) => answer.trim().length > 0).length,
     [answers]
   );
+  const isReportReady = answeredCount === interview.questions.length;
 
   async function saveCurrentAnswer() {
     const answer = answers[currentQuestion.id]?.trim();
@@ -68,8 +69,8 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
         <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Interview complete</p>
         <h1 className="text-4xl font-bold leading-tight text-stone-950">Nice work</h1>
         <p className="mt-4 text-lg leading-8 text-stone-600">
-          You answered {answeredCount} of {interview.questions.length} questions. The next MVP step will evaluate these
-          answers and turn them into a feedback report.
+          You answered {answeredCount} of {interview.questions.length} questions. Once every answer is saved, this MVP
+          can evaluate them and turn them into a feedback report.
         </p>
         <div className="mt-7 grid gap-4">
           {interview.questions.map((question, index) => (
@@ -82,15 +83,20 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
         </div>
         <button
           className="mt-7 min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-          disabled={evaluateInterview.isPending}
+          disabled={!isReportReady || evaluateInterview.isPending}
           type="button"
           onClick={() => void generateReport()}
         >
           {evaluateInterview.isPending ? 'Generating report...' : 'Generate report'}
         </button>
+        {!isReportReady ? (
+          <p className="mt-3 text-sm font-medium text-stone-600">
+            Answer all questions before generating a report.
+          </p>
+        ) : null}
         {evaluateInterview.isError ? (
           <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-            Could not generate the report. Please try again.
+            {evaluateInterview.error.message}
           </p>
         ) : null}
       </section>
@@ -108,9 +114,14 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
             {interview.input.topic ? ` · ${interview.input.topic}` : ''}
           </p>
         </div>
-        <p className="rounded-full border border-stone-200 px-3 py-2 text-sm font-semibold text-stone-700">
-          {currentIndex + 1} / {interview.questions.length}
-        </p>
+        <div className="flex flex-wrap gap-2">
+          <p className="rounded-full border border-stone-200 px-3 py-2 text-sm font-semibold text-stone-700">
+            Question {currentIndex + 1} / {interview.questions.length}
+          </p>
+          <p className="rounded-full border border-stone-200 px-3 py-2 text-sm font-semibold text-stone-700">
+            {answeredCount} of {interview.questions.length} answered
+          </p>
+        </div>
       </div>
 
       <div className="mt-8">

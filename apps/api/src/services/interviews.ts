@@ -13,6 +13,16 @@ import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } f
 import { evaluateInterviewAnswer } from "./answer-evaluation";
 import { generateInterviewQuestions } from "./question-generation";
 
+export class InterviewNotReadyError extends Error {
+  constructor(
+    readonly answeredQuestions: number,
+    readonly totalQuestions: number,
+  ) {
+    super("All questions must be answered before generating a report.");
+    this.name = "InterviewNotReadyError";
+  }
+}
+
 export async function createInterview(
   input: CreateInterviewInput,
   db: Database,
@@ -180,6 +190,13 @@ export async function evaluateInterview(
   }
 
   const answers = await listInterviewAnswers(interviewId, db);
+  const answeredQuestionIds = new Set(
+    answers.filter((answer) => answer.answer.trim().length > 0).map((answer) => answer.questionId),
+  );
+
+  if (answeredQuestionIds.size < interview.questions.length) {
+    throw new InterviewNotReadyError(answeredQuestionIds.size, interview.questions.length);
+  }
 
   for (const answer of answers) {
     const evaluation = await evaluateInterviewAnswer(answer, interview, answerEvaluation);

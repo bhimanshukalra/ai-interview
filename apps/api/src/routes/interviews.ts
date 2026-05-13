@@ -7,6 +7,7 @@ import {
   evaluateInterview,
   getInterview,
   getInterviewReport,
+  InterviewNotReadyError,
   listInterviewAnswers,
   submitInterviewAnswer
 } from '../services/interviews';
@@ -54,17 +55,36 @@ interviewRoutes.post('/:id/answers', async (c) => {
 });
 
 interviewRoutes.post('/:id/evaluate', async (c) => {
-  const report = await evaluateInterview(c.req.param('id'), createDb(c.env.DATABASE_URL), {
+  const interviewId = c.req.param('id');
+  const db = createDb(c.env.DATABASE_URL);
+  const answerEvaluation = {
     provider: c.env.AI_PROVIDER,
     apiKey: c.env.AI_API_KEY,
     model: c.env.AI_MODEL
-  });
+  };
 
-  if (!report) {
-    return c.json({ message: 'Interview not found' }, 404);
+  try {
+    const report = await evaluateInterview(interviewId, db, answerEvaluation);
+
+    if (!report) {
+      return c.json({ message: 'Interview not found' }, 404);
+    }
+
+    return c.json(report);
+  } catch (error) {
+    if (error instanceof InterviewNotReadyError) {
+      return c.json(
+        {
+          message: error.message,
+          answeredQuestions: error.answeredQuestions,
+          totalQuestions: error.totalQuestions
+        },
+        409
+      );
+    }
+
+    throw error;
   }
-
-  return c.json(report);
 });
 
 interviewRoutes.get('/:id/report', async (c) => {
