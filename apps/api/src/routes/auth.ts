@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { sign, verify } from 'hono/jwt';
+import type { Context } from 'hono';
 import { eq } from 'drizzle-orm';
 import { AuthUserSchema, CurrentUserResponseSchema, LoginSchema, RegisterSchema } from '@ai-interview/shared';
 import { createDb } from '../db/client';
@@ -42,7 +43,7 @@ async function issueToken(user: { id: string; email: string; name: string }, sec
   );
 }
 
-authRoutes.post('/register', async (c) => {
+async function registerUser(c: Context<Env>): Promise<Response> {
   const config = getAuthConfig(c.env);
 
   if ('error' in config) {
@@ -70,9 +71,9 @@ authRoutes.post('/register', async (c) => {
     token: await issueToken(user, config.jwtSecret),
     user: AuthUserSchema.parse(user)
   });
-});
+}
 
-authRoutes.post('/login', async (c) => {
+async function loginUser(c: Context<Env>): Promise<Response> {
   const config = getAuthConfig(c.env);
 
   if ('error' in config) {
@@ -91,9 +92,9 @@ authRoutes.post('/login', async (c) => {
     token: await issueToken(user, config.jwtSecret),
     user: AuthUserSchema.parse(user)
   });
-});
+}
 
-authRoutes.get('/me', async (c) => {
+async function getCurrentUser(c: Context<Env>): Promise<Response> {
   const config = getAuthConfig(c.env);
 
   if ('error' in config) {
@@ -125,4 +126,8 @@ authRoutes.get('/me', async (c) => {
   } catch {
     return c.json({ message: 'Invalid authorization token.' }, 401);
   }
-});
+}
+
+authRoutes.post('/register', registerUser);
+authRoutes.post('/login', loginUser);
+authRoutes.get('/me', getCurrentUser);

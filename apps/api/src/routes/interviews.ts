@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { verify } from 'hono/jwt';
+import type { Context, Next } from 'hono';
 import { CreateInterviewSchema, SubmitAnswerSchema } from '@ai-interview/shared';
 import { createDb } from '../db/client';
 import type { Env } from '../env';
@@ -15,7 +16,17 @@ import {
 
 export const interviewRoutes = new Hono<Env>();
 
-interviewRoutes.use('*', async (c, next) => {
+function getInterviewId(c: Context<Env>): string {
+  const interviewId = c.req.param('id');
+
+  if (!interviewId) {
+    throw new Error('Interview route id parameter is missing.');
+  }
+
+  return interviewId;
+}
+
+async function requireInterviewAuth(c: Context<Env>, next: Next): Promise<Response | void> {
   if (!c.env.DATABASE_URL) {
     return c.json({ message: 'DATABASE_URL is not configured for the API.' }, 503);
   }
@@ -44,9 +55,9 @@ interviewRoutes.use('*', async (c, next) => {
   }
 
   await next();
-});
+}
 
-interviewRoutes.post('/', async (c) => {
+async function createInterviewHandler(c: Context<Env>): Promise<Response> {
   const body = await c.req.json();
   const input = CreateInterviewSchema.parse(body);
   const interview = await createInterview(input, c.get('userId'), createDb(c.env.DATABASE_URL), {
@@ -57,42 +68,42 @@ interviewRoutes.post('/', async (c) => {
   });
 
   return c.json(interview, 201);
-});
+}
 
-interviewRoutes.get('/:id', async (c) => {
-  const interview = await getInterview(c.req.param('id'), c.get('userId'), createDb(c.env.DATABASE_URL));
+async function getInterviewHandler(c: Context<Env>): Promise<Response> {
+  const interview = await getInterview(getInterviewId(c), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!interview) {
     return c.json({ message: 'Interview not found' }, 404);
   }
 
   return c.json(interview);
-});
+}
 
-interviewRoutes.get('/:id/answers', async (c) => {
-  const answers = await listInterviewAnswers(c.req.param('id'), c.get('userId'), createDb(c.env.DATABASE_URL));
+async function listInterviewAnswersHandler(c: Context<Env>): Promise<Response> {
+  const answers = await listInterviewAnswers(getInterviewId(c), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!answers) {
     return c.json({ message: 'Interview not found' }, 404);
   }
 
   return c.json({ answers });
-});
+}
 
-interviewRoutes.post('/:id/answers', async (c) => {
+async function submitInterviewAnswerHandler(c: Context<Env>): Promise<Response> {
   const body = await c.req.json();
   const input = SubmitAnswerSchema.parse(body);
-  const answer = await submitInterviewAnswer(c.req.param('id'), c.get('userId'), input, createDb(c.env.DATABASE_URL));
+  const answer = await submitInterviewAnswer(getInterviewId(c), c.get('userId'), input, createDb(c.env.DATABASE_URL));
 
   if (!answer) {
     return c.json({ message: 'Question not found for interview' }, 404);
   }
 
   return c.json(answer, 201);
-});
+}
 
-interviewRoutes.post('/:id/evaluate', async (c) => {
-  const interviewId = c.req.param('id');
+async function evaluateInterviewHandler(c: Context<Env>): Promise<Response> {
+  const interviewId = getInterviewId(c);
   const db = createDb(c.env.DATABASE_URL);
   const answerEvaluation = {
     provider: c.env.AI_PROVIDER,
@@ -123,14 +134,22 @@ interviewRoutes.post('/:id/evaluate', async (c) => {
 
     throw error;
   }
-});
+}
 
-interviewRoutes.get('/:id/report', async (c) => {
-  const report = await getInterviewReport(c.req.param('id'), c.get('userId'), createDb(c.env.DATABASE_URL));
+async function getInterviewReportHandler(c: Context<Env>): Promise<Response> {
+  const report = await getInterviewReport(getInterviewId(c), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!report) {
     return c.json({ message: 'Interview not found' }, 404);
   }
 
   return c.json(report);
-});
+}
+
+interviewRoutes.use('*', requireInterviewAuth);
+interviewRoutes.post('/', createInterviewHandler);
+interviewRoutes.get('/:id', getInterviewHandler);
+interviewRoutes.get('/:id/answers', listInterviewAnswersHandler);
+interviewRoutes.post('/:id/answers', submitInterviewAnswerHandler);
+interviewRoutes.post('/:id/evaluate', evaluateInterviewHandler);
+interviewRoutes.get('/:id/report', getInterviewReportHandler);
