@@ -4,7 +4,6 @@ import { getApiBaseUrl } from '@/lib/config';
 import { createApiErrorFromPayload, createApiNetworkError } from './errors';
 
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json'
   }
@@ -23,6 +22,8 @@ function getAuthorizationHeader() {
 }
 
 api.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl();
+
   const authorization = getAuthorizationHeader();
 
   if (authorization) {
