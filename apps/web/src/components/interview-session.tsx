@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import type { CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
+import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 import { useEvaluateInterview } from '@/features/interviews/use-evaluate-interview';
 import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
 
@@ -96,7 +97,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
         ) : null}
         {evaluateInterview.isError ? (
           <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-            {evaluateInterview.error.message}
+            {getFriendlyApiErrorMessage(evaluateInterview.error, 'Could not generate the report.')}
           </p>
         ) : null}
       </section>
@@ -177,7 +178,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
       </div>
       {submitAnswer.isError ? (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          Could not save this answer. Please try again.
+          {getFriendlyApiErrorMessage(submitAnswer.error, 'Could not save this answer.')}
         </p>
       ) : null}
     </section>

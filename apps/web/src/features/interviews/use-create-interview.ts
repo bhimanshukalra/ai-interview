@@ -5,16 +5,14 @@ import type {
   CreateInterviewInput,
   CreateInterviewResponse,
 } from "@ai-interview/shared";
-import { ApiError } from "@/lib/api/errors";
+import { getFriendlyApiErrorMessage } from "@/lib/api/errors";
 import { createInterview } from "./api";
 import { interviewQueryKeys } from "./query-keys";
-
-type CreateInterviewMutationError = ApiError | Error;
 
 export function useCreateInterview() {
   const mutation = useMutation<
     CreateInterviewResponse,
-    CreateInterviewMutationError,
+    Error,
     CreateInterviewInput
   >({
     mutationKey: interviewQueryKeys.create,
@@ -32,11 +30,10 @@ export function useCreateInterview() {
   };
 }
 
-function getSubmitErrorMessage(error: CreateInterviewMutationError | null) {
+function getSubmitErrorMessage(error: Error | null) {
   if (!error) {
     return null;
   }
 
-  const baseMessage = error.message || "Could not create the interview.";
-  return `${baseMessage} Make sure the Hono API is running with pnpm dev:api.`;
+  return getFriendlyApiErrorMessage(error, "Could not create the interview.");
 }

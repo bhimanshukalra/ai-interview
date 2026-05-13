@@ -14,6 +14,14 @@ import {
 
 export const interviewRoutes = new Hono<Env>();
 
+interviewRoutes.use('*', async (c, next) => {
+  if (!c.env.DATABASE_URL) {
+    return c.json({ message: 'DATABASE_URL is not configured for the API.' }, 503);
+  }
+
+  await next();
+});
+
 interviewRoutes.post('/', async (c) => {
   const body = await c.req.json();
   const input = CreateInterviewSchema.parse(body);
