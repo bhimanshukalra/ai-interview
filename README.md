@@ -43,7 +43,8 @@ Required Cloudflare secrets:
 - `AI_API_KEY` - Gemini API key for production question generation and evaluation
 - `CORS_ORIGIN` - deployed frontend origin, for example `https://ai-interview.example.com`
 
-Production `AI_PROVIDER=gemini` and `AI_MODEL=gemini-2.5-flash` are set in `wrangler.jsonc`.
+Production `AI_PROVIDER=gemini`, `AI_MODEL=gemini-2.5-flash`, and `ENVIRONMENT=production` are set in `wrangler.jsonc`.
+`ENVIRONMENT=production` prevents local development origins from being included in the CORS allowlist.
 Set `AI_FALLBACK_TO_MOCK=true` only in local or non-production environments where mock AI output is acceptable.
 
 ### Neon
