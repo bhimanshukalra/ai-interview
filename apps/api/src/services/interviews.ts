@@ -31,6 +31,7 @@ export async function createInterview(
     provider?: "mock" | "gemini";
     apiKey?: string;
     model?: string;
+    fallbackToMock?: boolean;
   } = {},
 ): Promise<CreateInterviewResponse> {
   const interview: CreateInterviewResponse = {
@@ -41,6 +42,7 @@ export async function createInterview(
       provider: questionGeneration.provider,
       apiKey: questionGeneration.apiKey,
       model: questionGeneration.model,
+      fallbackToMock: questionGeneration.fallbackToMock,
     }),
   };
 

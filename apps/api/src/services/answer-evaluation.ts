@@ -25,6 +25,10 @@ export async function evaluateInterviewAnswer(
   try {
     return await configuredEvaluator.evaluateAnswer({ answer, interview });
   } catch (error) {
+    if (!config.fallbackToMock) {
+      throw error;
+    }
+
     console.warn(error);
     return fallbackEvaluator.evaluateAnswer({ answer, interview });
   }

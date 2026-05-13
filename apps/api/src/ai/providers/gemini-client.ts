@@ -22,6 +22,32 @@ type GenerateJsonOptions = {
   systemInstruction: string;
 };
 
+async function getGeminiErrorMessage(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return `AI generation failed with status ${response.status}`;
+  }
+
+  try {
+    const payload = z
+      .object({
+        error: z
+          .object({
+            message: z.string().optional()
+          })
+          .optional()
+      })
+      .parse(JSON.parse(text));
+
+    return payload.error?.message
+      ? `AI generation failed with status ${response.status}: ${payload.error.message}`
+      : `AI generation failed with status ${response.status}`;
+  } catch {
+    return `AI generation failed with status ${response.status}: ${text.slice(0, 240)}`;
+  }
+}
+
 export async function generateGeminiJson(options: GenerateJsonOptions) {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent`,
@@ -49,7 +75,7 @@ export async function generateGeminiJson(options: GenerateJsonOptions) {
   );
 
   if (!response.ok) {
-    throw new Error(`AI generation failed with status ${response.status}`);
+    throw new Error(await getGeminiErrorMessage(response));
   }
 
   const payload = GeminiResponseSchema.parse(await response.json());
@@ -59,5 +85,9 @@ export async function generateGeminiJson(options: GenerateJsonOptions) {
     throw new Error('AI generation response did not include generated text');
   }
 
-  return JSON.parse(text) as unknown;
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new Error('AI generation response did not include valid JSON');
+  }
 }

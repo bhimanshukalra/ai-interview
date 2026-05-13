@@ -52,7 +52,8 @@ interviewRoutes.post('/', async (c) => {
   const interview = await createInterview(input, c.get('userId'), createDb(c.env.DATABASE_URL), {
     provider: c.env.AI_PROVIDER,
     apiKey: c.env.AI_API_KEY,
-    model: c.env.AI_MODEL
+    model: c.env.AI_MODEL,
+    fallbackToMock: c.env.AI_FALLBACK_TO_MOCK === 'true'
   });
 
   return c.json(interview, 201);
@@ -96,7 +97,8 @@ interviewRoutes.post('/:id/evaluate', async (c) => {
   const answerEvaluation = {
     provider: c.env.AI_PROVIDER,
     apiKey: c.env.AI_API_KEY,
-    model: c.env.AI_MODEL
+    model: c.env.AI_MODEL,
+    fallbackToMock: c.env.AI_FALLBACK_TO_MOCK === 'true'
   };
 
   try {

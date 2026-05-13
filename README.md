@@ -44,6 +44,7 @@ Required Cloudflare secrets:
 - `CORS_ORIGIN` - deployed frontend origin, for example `https://ai-interview.example.com`
 
 Production `AI_PROVIDER=gemini` and `AI_MODEL=gemini-2.5-flash` are set in `wrangler.jsonc`.
+Set `AI_FALLBACK_TO_MOCK=true` only in local or non-production environments where mock AI output is acceptable.
 
 ### Neon
 

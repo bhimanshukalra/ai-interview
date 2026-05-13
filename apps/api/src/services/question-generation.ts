@@ -27,7 +27,13 @@ export async function generateInterviewQuestions(
     if (questions.length === input.questionCount) {
       return questions;
     }
+
+    throw new Error(`Question generator returned ${questions.length} questions, expected ${input.questionCount}.`);
   } catch (error) {
+    if (!config.fallbackToMock) {
+      throw error;
+    }
+
     console.warn(error);
   }
 

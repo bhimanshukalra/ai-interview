@@ -6,6 +6,7 @@ export type QuestionGenerationConfig = {
   provider?: QuestionGenerationProvider;
   apiKey?: string;
   model?: string;
+  fallbackToMock?: boolean;
 };
 
 export type QuestionGenerator = {

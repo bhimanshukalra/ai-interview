@@ -6,6 +6,7 @@ export type AnswerEvaluationConfig = {
   provider?: AnswerEvaluationProvider;
   apiKey?: string;
   model?: string;
+  fallbackToMock?: boolean;
 };
 
 export type AnswerEvaluationInput = {
