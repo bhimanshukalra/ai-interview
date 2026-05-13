@@ -3,15 +3,92 @@ import type {
   CreateInterviewResponse,
   InterviewAnswer,
   InterviewAnswerEvaluation,
+  InterviewQuestion,
   InterviewReportResponse,
   SubmitAnswerInput,
 } from "@ai-interview/shared";
+import { InterviewLevelSchema, InterviewTypeSchema } from "@ai-interview/shared";
 import type { AnswerEvaluationConfig } from "../ai/answer-evaluator";
 import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "../db/client";
 import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from "../db/schema";
 import { evaluateInterviewAnswer } from "./answer-evaluation";
 import { generateInterviewQuestions } from "./question-generation";
+
+type AnswerEvaluationRow = typeof answerEvaluations.$inferSelect;
+type IndexedInterviewQuestion = InterviewQuestion & { index: number };
+
+function mapInterviewQuestion(question: typeof interviewQuestions.$inferSelect): InterviewQuestion {
+  return {
+    id: question.id,
+    title: question.title,
+    question: question.question,
+    difficulty: InterviewLevelSchema.parse(question.difficulty),
+    type: InterviewTypeSchema.parse(question.type),
+    rubric: {
+      excellent: question.rubricExcellent,
+      good: question.rubricGood,
+      weak: question.rubricWeak,
+    },
+  };
+}
+
+function mapInterviewAnswer(answer: typeof interviewAnswers.$inferSelect): InterviewAnswer {
+  return {
+    id: answer.id,
+    interviewId: answer.interviewId,
+    questionId: answer.questionId,
+    answer: answer.answer,
+  };
+}
+
+function calculateOverallScore(evaluations: InterviewAnswerEvaluation[]): number {
+  if (evaluations.length === 0) {
+    return 0;
+  }
+
+  const totalScore = evaluations.reduce((total, evaluation) => total + evaluation.score, 0);
+
+  return Number((totalScore / evaluations.length).toFixed(1));
+}
+
+function mapEvaluationsToReportItems(
+  evaluations: AnswerEvaluationRow[],
+  questions: InterviewQuestion[],
+  answers: InterviewAnswer[],
+): InterviewAnswerEvaluation[] {
+  const questionById = new Map<string, IndexedInterviewQuestion>(
+    questions.map((question, index) => [question.id, { ...question, index }])
+  );
+  const answerById = new Map(answers.map((answer) => [answer.id, answer]));
+
+  return evaluations
+    .map((evaluation) => {
+      const question = questionById.get(evaluation.questionId);
+      const answer = answerById.get(evaluation.answerId);
+
+      return {
+        id: evaluation.id,
+        interviewId: evaluation.interviewId,
+        questionId: evaluation.questionId,
+        questionTitle: question?.title ?? 'Interview question',
+        question: question?.question ?? 'Question unavailable.',
+        answerId: evaluation.answerId,
+        answer: answer?.answer ?? '',
+        score: evaluation.score,
+        summary: evaluation.summary,
+        strengths: evaluation.strengths,
+        weaknesses: evaluation.weaknesses,
+        followUpQuestion: evaluation.followUpQuestion ?? undefined,
+      };
+    })
+    .sort((left, right) => {
+      const leftIndex = questionById.get(left.questionId)?.index ?? Number.MAX_SAFE_INTEGER;
+      const rightIndex = questionById.get(right.questionId)?.index ?? Number.MAX_SAFE_INTEGER;
+
+      return leftIndex - rightIndex;
+    });
+}
 
 export class InterviewNotReadyError extends Error {
   constructor(
@@ -101,23 +178,12 @@ export async function getInterview(
     status: "created",
     input: {
       role: interview.role,
-      level: interview.level as CreateInterviewInput["level"],
-      type: interview.type as CreateInterviewInput["type"],
+      level: InterviewLevelSchema.parse(interview.level),
+      type: InterviewTypeSchema.parse(interview.type),
       topic: interview.topic ?? undefined,
       questionCount: interview.questionCount,
     },
-    questions: questions.map((question) => ({
-      id: question.id,
-      title: question.title,
-      question: question.question,
-      difficulty: question.difficulty as CreateInterviewInput["level"],
-      type: question.type as CreateInterviewInput["type"],
-      rubric: {
-        excellent: question.rubricExcellent,
-        good: question.rubricGood,
-        weak: question.rubricWeak,
-      },
-    })),
+    questions: questions.map(mapInterviewQuestion),
   };
 }
 
@@ -137,12 +203,7 @@ export async function listInterviewAnswers(
     .from(interviewAnswers)
     .where(eq(interviewAnswers.interviewId, interviewId));
 
-  return answers.map((answer) => ({
-    id: answer.id,
-    interviewId: answer.interviewId,
-    questionId: answer.questionId,
-    answer: answer.answer,
-  }));
+  return answers.map(mapInterviewAnswer);
 }
 
 export async function submitInterviewAnswer(
@@ -185,12 +246,7 @@ export async function submitInterviewAnswer(
     })
     .returning();
 
-  return {
-    id: answer.id,
-    interviewId: answer.interviewId,
-    questionId: answer.questionId,
-    answer: answer.answer,
-  };
+  return mapInterviewAnswer(answer);
 }
 
 export async function evaluateInterview(
@@ -272,49 +328,11 @@ export async function getInterviewReport(
     return null;
   }
 
-  const questionById = new Map(interview.questions.map((question, index) => [question.id, { ...question, index }]));
-  const answerById = new Map(answers.map((answer) => [answer.id, answer]));
-
-  const mappedEvaluations: InterviewAnswerEvaluation[] = evaluations
-    .map((evaluation) => {
-      const question = questionById.get(evaluation.questionId);
-      const answer = answerById.get(evaluation.answerId);
-
-      return {
-        id: evaluation.id,
-        interviewId: evaluation.interviewId,
-        questionId: evaluation.questionId,
-        questionTitle: question?.title ?? 'Interview question',
-        question: question?.question ?? 'Question unavailable.',
-        answerId: evaluation.answerId,
-        answer: answer?.answer ?? '',
-        score: evaluation.score,
-        summary: evaluation.summary,
-        strengths: evaluation.strengths,
-        weaknesses: evaluation.weaknesses,
-        followUpQuestion: evaluation.followUpQuestion ?? undefined,
-      };
-    })
-    .sort((left, right) => {
-      const leftIndex = questionById.get(left.questionId)?.index ?? Number.MAX_SAFE_INTEGER;
-      const rightIndex = questionById.get(right.questionId)?.index ?? Number.MAX_SAFE_INTEGER;
-
-      return leftIndex - rightIndex;
-    });
-
-  const overallScore =
-    mappedEvaluations.length > 0
-      ? Number(
-          (
-            mappedEvaluations.reduce((total, evaluation) => total + evaluation.score, 0) /
-            mappedEvaluations.length
-          ).toFixed(1),
-        )
-      : 0;
+  const mappedEvaluations = mapEvaluationsToReportItems(evaluations, interview.questions, answers);
 
   return {
     interviewId,
-    overallScore,
+    overallScore: calculateOverallScore(mappedEvaluations),
     answeredQuestions: mappedEvaluations.length,
     totalQuestions: interview.questions.length,
     evaluations: mappedEvaluations,
