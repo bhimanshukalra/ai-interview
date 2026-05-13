@@ -3,7 +3,7 @@ import type { AnswerEvaluator } from '../answer-evaluator';
 
 function createMockEvaluation(answer: string): AnswerEvaluation {
   const wordCount = answer.trim().split(/\s+/).filter(Boolean).length;
-  const score = Math.max(3, Math.min(10, Math.round(wordCount / 12) + 3));
+  const score = Math.max(1, Math.min(8, Math.round(wordCount / 16) + 2));
 
   return {
     score,

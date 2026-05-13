@@ -11,7 +11,7 @@ function buildResponseSchema() {
   return {
     type: 'object',
     properties: {
-      score: { type: 'number' },
+      score: { type: 'integer', minimum: 0, maximum: 10 },
       summary: { type: 'string' },
       strengths: {
         type: 'array',
@@ -54,13 +54,22 @@ export function createGeminiAnswerEvaluator(options: GeminiAnswerEvaluatorOption
         input.answer.answer,
         '',
         'Evaluation requirements:',
+        '- Score must be an integer from 0 to 10 using the scoring guide below.',
         '- Judge only the written answer, not the candidate in general.',
         '- Reward concrete examples, accurate reasoning, tradeoff awareness, and role-appropriate depth.',
         '- Penalize vague claims, missing specifics, incorrect concepts, and unsupported assertions.',
         '- Keep the summary concise and actionable.',
         '- Strengths should cite what the answer did well.',
         '- Weaknesses should name the most important improvements.',
-        '- Include one follow-up question when it would reveal useful depth.'
+        '- Include one follow-up question when it would reveal useful depth.',
+        '',
+        'Scoring guide:',
+        '- 10: exceptional answer with accurate depth, concrete evidence, tradeoffs, and clear senior-level judgment.',
+        '- 8-9: strong answer with accurate substance and useful specifics, with only minor gaps.',
+        '- 6-7: acceptable answer that covers the main idea but lacks depth, evidence, or important tradeoffs.',
+        '- 4-5: partial answer with some relevant points but notable omissions, vagueness, or confusion.',
+        '- 1-3: mostly incorrect, extremely shallow, or not meaningfully connected to the question.',
+        '- 0: blank, evasive, or entirely unrelated answer.'
       ].join('\n');
 
       const payload = await generateGeminiJson({

@@ -36,7 +36,7 @@ const questionSchema = {
 const evaluationSchema = {
   type: 'object',
   properties: {
-    score: { type: 'number' },
+    score: { type: 'integer', minimum: 0, maximum: 10 },
     summary: { type: 'string' },
     strengths: {
       type: 'array',
@@ -181,7 +181,7 @@ async function runEvaluationSmokeTest(fetchImpl) {
     fetchImpl
   });
 
-  assert(typeof payload.score === 'number', 'Evaluation payload must include a numeric score.');
+  assert(Number.isInteger(payload.score), 'Evaluation payload must include an integer score.');
   assert(payload.summary, 'Evaluation payload must include a summary.');
   assert(Array.isArray(payload.strengths), 'Evaluation payload must include strengths.');
   assert(Array.isArray(payload.weaknesses), 'Evaluation payload must include weaknesses.');

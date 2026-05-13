@@ -33,7 +33,7 @@ pnpm --filter api test:gemini
 - [x] Test with `AI_PROVIDER=gemini`.
 - [x] Improve Gemini question prompts.
 - [x] Improve Gemini evaluation prompts.
-- [ ] Add a stricter scoring rubric.
+- [x] Add a stricter scoring rubric.
 - [ ] Make report feedback more useful.
 - [ ] Configure Vercel deployment for `apps/web`.
 - [ ] Configure Cloudflare Workers deployment for `apps/api`.

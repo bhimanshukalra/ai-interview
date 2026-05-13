@@ -70,7 +70,7 @@ export const InterviewAnswersResponseSchema = z.object({
 });
 
 export const AnswerEvaluationSchema = z.object({
-  score: z.number().min(0).max(10),
+  score: z.number().int().min(0).max(10),
   summary: z.string(),
   strengths: z.array(z.string()),
   weaknesses: z.array(z.string()),
