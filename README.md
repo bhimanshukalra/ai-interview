@@ -22,7 +22,7 @@ pnpm dev
 - [x] Validate JWT in Hono middleware.
 - [x] Associate interviews with user id.
 - [x] Prevent loading someone else's interview.
-- [ ] Add a real login/auth flow to issue and store user JWTs.
+- [x] Add a real login/auth flow to issue and store user JWTs.
 - [x] Require all questions to be answered before generating a report.
 - [x] Show answered question progress.
 - [x] Disable report generation until the interview is complete.

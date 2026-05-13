@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import type { z } from 'zod';
-import { getApiBaseUrl, getAuthToken } from '@/lib/config';
+import { getApiBaseUrl } from '@/lib/config';
 import { createApiErrorFromPayload, createApiNetworkError } from './errors';
 
 const api = axios.create({
@@ -13,13 +13,11 @@ const api = axios.create({
 const authTokenStorageKey = 'ai-interview.authToken';
 
 function getAuthorizationHeader() {
-  const configuredToken = getAuthToken()?.trim();
-
   if (typeof window === 'undefined') {
-    return configuredToken ? `Bearer ${configuredToken}` : null;
+    return null;
   }
 
-  const token = window.localStorage.getItem(authTokenStorageKey)?.trim() ?? configuredToken;
+  const token = getStoredApiAuthorizationToken();
 
   return token ? `Bearer ${token}` : null;
 }
@@ -33,6 +31,14 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+export function getStoredApiAuthorizationToken() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage.getItem(authTokenStorageKey)?.trim() ?? null;
+}
 
 export function setApiAuthorizationToken(token: string | null) {
   if (typeof window === 'undefined') {

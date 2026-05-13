@@ -1,5 +1,17 @@
 import { integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
+export const users = pgTable(
+  'users',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull(),
+    name: text('name').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [uniqueIndex('users_email_unique').on(table.email)]
+);
+
 export const interviews = pgTable('interviews', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull(),

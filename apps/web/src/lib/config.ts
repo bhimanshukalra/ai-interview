@@ -1,5 +1,4 @@
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
-const authToken = process.env.NEXT_PUBLIC_AUTH_TOKEN;
 
 export function getApiBaseUrl() {
   if (!apiBaseUrl) {
@@ -7,8 +6,4 @@ export function getApiBaseUrl() {
   }
 
   return apiBaseUrl;
-}
-
-export function getAuthToken() {
-  return authToken;
 }
