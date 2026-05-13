@@ -18,6 +18,7 @@ export function useSubmitAnswer() {
     mutationFn: ({ interviewId, input }) => submitInterviewAnswer(interviewId, input),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.answers(variables.interviewId) });
+      void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.report(variables.interviewId) });
     }
   });
 }

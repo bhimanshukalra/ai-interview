@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { LoginSchema, RegisterSchema, type AuthUser } from "@ai-interview/shared";
 import { getCurrentUser, login, register } from "@/features/auth/api";
 import { LoadingPanel } from "@/components/loading-panel";
@@ -29,6 +30,7 @@ const inputClass =
   "min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15";
 
 export function AuthPanel({ children }: AuthPanelProps) {
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<AuthMode>("login");
   const [form, setForm] = useState(initialForm);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -94,6 +96,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
           : await login(LoginSchema.parse(form));
 
       setApiAuthorizationToken(response.token);
+      queryClient.clear();
       setUser(response.user);
       setForm(initialForm);
     } catch (authError) {
@@ -105,6 +108,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
 
   function logout() {
     setApiAuthorizationToken(null);
+    queryClient.clear();
     setUser(null);
   }
 
