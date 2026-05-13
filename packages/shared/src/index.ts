@@ -31,6 +31,22 @@ export const CreateInterviewResponseSchema = z.object({
   questions: z.array(InterviewQuestionSchema)
 });
 
+export const SubmitAnswerSchema = z.object({
+  questionId: z.string().min(1),
+  answer: z.string().min(1).max(8000)
+});
+
+export const InterviewAnswerSchema = z.object({
+  id: z.string(),
+  interviewId: z.string(),
+  questionId: z.string(),
+  answer: z.string()
+});
+
+export const InterviewAnswersResponseSchema = z.object({
+  answers: z.array(InterviewAnswerSchema)
+});
+
 export const AnswerEvaluationSchema = z.object({
   score: z.number().min(0).max(10),
   summary: z.string(),
@@ -42,4 +58,7 @@ export const AnswerEvaluationSchema = z.object({
 export type CreateInterviewInput = z.infer<typeof CreateInterviewSchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
 export type CreateInterviewResponse = z.infer<typeof CreateInterviewResponseSchema>;
+export type SubmitAnswerInput = z.infer<typeof SubmitAnswerSchema>;
+export type InterviewAnswer = z.infer<typeof InterviewAnswerSchema>;
+export type InterviewAnswersResponse = z.infer<typeof InterviewAnswersResponseSchema>;
 export type AnswerEvaluation = z.infer<typeof AnswerEvaluationSchema>;

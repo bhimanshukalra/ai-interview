@@ -1,11 +1,13 @@
 import type {
   CreateInterviewInput,
   CreateInterviewResponse,
+  InterviewAnswer,
   InterviewQuestion,
+  SubmitAnswerInput,
 } from "@ai-interview/shared";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "../db/client";
-import { interviewQuestions, interviews } from "../db/schema";
+import { interviewAnswers, interviewQuestions, interviews } from "../db/schema";
 
 function createMockQuestions(input: CreateInterviewInput): InterviewQuestion[] {
   const topic = input.topic ?? input.role;
@@ -110,5 +112,67 @@ export async function getInterview(
         weak: question.rubricWeak,
       },
     })),
+  };
+}
+
+export async function listInterviewAnswers(
+  interviewId: string,
+  db: Database,
+): Promise<InterviewAnswer[]> {
+  const answers = await db
+    .select()
+    .from(interviewAnswers)
+    .where(eq(interviewAnswers.interviewId, interviewId));
+
+  return answers.map((answer) => ({
+    id: answer.id,
+    interviewId: answer.interviewId,
+    questionId: answer.questionId,
+    answer: answer.answer,
+  }));
+}
+
+export async function submitInterviewAnswer(
+  interviewId: string,
+  input: SubmitAnswerInput,
+  db: Database,
+): Promise<InterviewAnswer | null> {
+  const [question] = await db
+    .select({ id: interviewQuestions.id })
+    .from(interviewQuestions)
+    .where(
+      and(
+        eq(interviewQuestions.id, input.questionId),
+        eq(interviewQuestions.interviewId, interviewId),
+      ),
+    )
+    .limit(1);
+
+  if (!question) {
+    return null;
+  }
+
+  const [answer] = await db
+    .insert(interviewAnswers)
+    .values({
+      id: crypto.randomUUID(),
+      interviewId,
+      questionId: input.questionId,
+      answer: input.answer,
+    })
+    .onConflictDoUpdate({
+      target: [interviewAnswers.interviewId, interviewAnswers.questionId],
+      set: {
+        answer: input.answer,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return {
+    id: answer.id,
+    interviewId: answer.interviewId,
+    questionId: answer.questionId,
+    answer: answer.answer,
   };
 }

@@ -1,15 +1,20 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { CreateInterviewResponse } from '@ai-interview/shared';
+import type { CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
+import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
 
 type InterviewSessionProps = {
   interview: CreateInterviewResponse;
+  savedAnswers: InterviewAnswer[];
 };
 
-export function InterviewSession({ interview }: InterviewSessionProps) {
+export function InterviewSession({ interview, savedAnswers }: InterviewSessionProps) {
+  const submitAnswer = useSubmitAnswer();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(() =>
+    Object.fromEntries(savedAnswers.map((answer) => [answer.questionId, answer.answer])),
+  );
 
   const currentQuestion = interview.questions[currentIndex];
   const isComplete = currentIndex >= interview.questions.length;
@@ -17,6 +22,32 @@ export function InterviewSession({ interview }: InterviewSessionProps) {
     () => Object.values(answers).filter((answer) => answer.trim().length > 0).length,
     [answers]
   );
+
+  async function saveCurrentAnswer() {
+    const answer = answers[currentQuestion.id]?.trim();
+
+    if (!answer) {
+      return false;
+    }
+
+    await submitAnswer.mutateAsync({
+      interviewId: interview.id,
+      input: {
+        questionId: currentQuestion.id,
+        answer,
+      },
+    });
+
+    return true;
+  }
+
+  async function goToNextQuestion() {
+    const didSave = await saveCurrentAnswer();
+
+    if (didSave) {
+      setCurrentIndex((index) => index + 1);
+    }
+  }
 
   if (isComplete) {
     return (
@@ -95,13 +126,23 @@ export function InterviewSession({ interview }: InterviewSessionProps) {
           Previous
         </button>
         <button
-          className="min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
+          className="min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+          disabled={submitAnswer.isPending}
           type="button"
-          onClick={() => setCurrentIndex((index) => index + 1)}
+          onClick={() => void goToNextQuestion()}
         >
-          {currentIndex === interview.questions.length - 1 ? 'Finish interview' : 'Next question'}
+          {submitAnswer.isPending
+            ? 'Saving...'
+            : currentIndex === interview.questions.length - 1
+              ? 'Finish interview'
+              : 'Next question'}
         </button>
       </div>
+      {submitAnswer.isError ? (
+        <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          Could not save this answer. Please try again.
+        </p>
+      ) : null}
     </section>
   );
 }

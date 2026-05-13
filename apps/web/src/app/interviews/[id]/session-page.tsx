@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { InterviewSession } from '@/components/interview-session';
+import { useInterviewAnswers } from '@/features/interviews/use-interview-answers';
 import { useInterviewSession } from '@/features/interviews/use-interview-session';
 
 type InterviewSessionPageProps = {
@@ -10,8 +11,9 @@ type InterviewSessionPageProps = {
 
 export function InterviewSessionPage({ id }: InterviewSessionPageProps) {
   const { data: interview, isError, isLoading } = useInterviewSession(id);
+  const { data: answersResponse, isLoading: areAnswersLoading } = useInterviewAnswers(id);
 
-  if (isLoading) {
+  if (isLoading || areAnswersLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
         <p className="text-stone-600">Loading interview...</p>
@@ -41,7 +43,7 @@ export function InterviewSessionPage({ id }: InterviewSessionPageProps) {
 
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-      <InterviewSession interview={interview} />
+      <InterviewSession interview={interview} savedAnswers={answersResponse?.answers ?? []} />
     </main>
   );
 }
