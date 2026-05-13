@@ -13,6 +13,9 @@ const ApiErrorResponseSchema = z.object({
     .optional()
 });
 
+const genericErrorMessage = 'Something went wrong. Please try again.';
+const networkErrorMessage = 'Could not connect. Check your connection and try again.';
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -38,32 +41,52 @@ function getMessageFromPayload(payload: unknown, fallback: string): string {
 }
 
 export function createApiErrorFromPayload(payload: unknown, status: number): ApiError {
-  return new ApiError(getMessageFromPayload(payload, `API request failed with status ${status}`), status);
+  return new ApiError(getMessageFromPayload(payload, genericErrorMessage), status);
 }
 
 export function createApiNetworkError(): ApiError {
-  return new ApiError('Could not reach the API. Make sure the local API server is running.', 0);
+  return new ApiError(networkErrorMessage, 0);
 }
 
 export function getFriendlyApiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     if (error.status === 0) {
-      return error.message;
+      return networkErrorMessage;
+    }
+
+    if (error.status === 400) {
+      return error.message || fallback;
+    }
+
+    if (error.status === 401) {
+      return 'Please sign in again to continue.';
+    }
+
+    if (error.status === 403) {
+      return 'You do not have access to this.';
+    }
+
+    if (error.status === 404) {
+      return error.message || 'We could not find what you were looking for.';
+    }
+
+    if (error.status === 409) {
+      return error.message || fallback;
     }
 
     if (error.status === 503) {
-      return `${error.message} Check the API environment and restart the server.`;
+      return error.message || 'This service is not ready right now. Please try again in a few minutes.';
     }
 
-    return error.message;
+    if (error.status >= 500) {
+      return genericErrorMessage;
+    }
+
+    return error.message || fallback;
   }
 
   if (error instanceof TypeError) {
-    return 'Could not reach the API. Make sure the local API server is running.';
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
+    return networkErrorMessage;
   }
 
   return fallback;

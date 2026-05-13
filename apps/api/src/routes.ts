@@ -31,7 +31,7 @@ function handleAppError(error: Error, c: Context<Env>): Response {
   if (error instanceof ZodError) {
     return c.json(
       {
-        message: 'Invalid request input.',
+        message: 'Please check your input and try again.',
         issues: error.issues.map((issue) => ({
           path: issue.path.join('.'),
           message: issue.message
@@ -42,12 +42,12 @@ function handleAppError(error: Error, c: Context<Env>): Response {
   }
 
   if (error instanceof SyntaxError) {
-    return c.json({ message: 'Invalid JSON request body.' }, 400);
+    return c.json({ message: 'We could not understand that request.' }, 400);
   }
 
   logError('Unexpected API error.', error);
 
-  return c.json({ message: 'Unexpected API error.' }, 500);
+  return c.json({ message: 'Something went wrong. Please try again.' }, 500);
 }
 
 app.use(

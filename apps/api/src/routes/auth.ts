@@ -11,14 +11,16 @@ import { hashPassword, verifyPassword } from '../services/passwords';
 export const authRoutes = new Hono<Env>();
 
 const authTokenTtlSeconds = 60 * 60 * 24 * 7;
+const serviceUnavailableMessage = 'This service is not ready right now. Please try again in a few minutes.';
+const signInAgainMessage = 'Please sign in again to continue.';
 
 function getAuthConfig(env: Env['Bindings']) {
   if (!env.DATABASE_URL) {
-    return { error: 'DATABASE_URL is not configured for the API.' };
+    return { error: serviceUnavailableMessage };
   }
 
   if (!env.JWT_SECRET) {
-    return { error: 'JWT_SECRET is not configured for the API.' };
+    return { error: serviceUnavailableMessage };
   }
 
   return {
@@ -105,26 +107,26 @@ async function getCurrentUser(c: Context<Env>): Promise<Response> {
   const [scheme, token] = authorization?.split(/\s+/) ?? [];
 
   if (scheme !== 'Bearer' || !token) {
-    return c.json({ message: 'Authorization bearer token is required.' }, 401);
+    return c.json({ message: signInAgainMessage }, 401);
   }
 
   try {
     const payload = await verify(token, config.jwtSecret, 'HS256');
 
     if (typeof payload.sub !== 'string') {
-      return c.json({ message: 'Invalid authorization token.' }, 401);
+      return c.json({ message: signInAgainMessage }, 401);
     }
 
     const db = createDb(config.databaseUrl);
     const [user] = await db.select().from(users).where(eq(users.id, payload.sub)).limit(1);
 
     if (!user) {
-      return c.json({ message: 'User not found.' }, 404);
+      return c.json({ message: 'We could not find your account.' }, 404);
     }
 
     return c.json(CurrentUserResponseSchema.parse({ user }));
   } catch {
-    return c.json({ message: 'Invalid authorization token.' }, 401);
+    return c.json({ message: signInAgainMessage }, 401);
   }
 }
 

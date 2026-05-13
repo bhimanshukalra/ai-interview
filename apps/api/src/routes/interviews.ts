@@ -23,6 +23,9 @@ import {
 
 export const interviewRoutes = new Hono<Env>();
 
+const serviceUnavailableMessage = 'This service is not ready right now. Please try again in a few minutes.';
+const signInAgainMessage = 'Please sign in again to continue.';
+
 function getInterviewId(c: Context<Env>): string {
   const interviewId = c.req.param('id');
 
@@ -35,30 +38,30 @@ function getInterviewId(c: Context<Env>): string {
 
 async function requireInterviewAuth(c: Context<Env>, next: Next): Promise<Response | void> {
   if (!c.env.DATABASE_URL) {
-    return c.json({ message: 'DATABASE_URL is not configured for the API.' }, 503);
+    return c.json({ message: serviceUnavailableMessage }, 503);
   }
 
   if (!c.env.JWT_SECRET) {
-    return c.json({ message: 'JWT_SECRET is not configured for the API.' }, 503);
+    return c.json({ message: serviceUnavailableMessage }, 503);
   }
 
   const authorization = c.req.header('Authorization');
   const [scheme, token] = authorization?.split(/\s+/) ?? [];
 
   if (scheme !== 'Bearer' || !token) {
-    return c.json({ message: 'Authorization bearer token is required.' }, 401);
+    return c.json({ message: signInAgainMessage }, 401);
   }
 
   try {
     const payload = await verify(token, c.env.JWT_SECRET, 'HS256');
 
     if (typeof payload.sub !== 'string' || payload.sub.trim().length === 0) {
-      return c.json({ message: 'JWT subject is required.' }, 401);
+      return c.json({ message: signInAgainMessage }, 401);
     }
 
     c.set('userId', payload.sub);
   } catch {
-    return c.json({ message: 'Invalid authorization token.' }, 401);
+    return c.json({ message: signInAgainMessage }, 401);
   }
 
   await next();
@@ -81,7 +84,7 @@ async function getInterviewHandler(c: Context<Env>): Promise<Response> {
   const interview = await getInterview(getInterviewId(c), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!interview) {
-    return c.json({ message: 'Interview not found' }, 404);
+    return c.json({ message: 'We could not find that interview.' }, 404);
   }
 
   return c.json(CreateInterviewResponseSchema.parse(interview));
@@ -91,7 +94,7 @@ async function listInterviewAnswersHandler(c: Context<Env>): Promise<Response> {
   const answers = await listInterviewAnswers(getInterviewId(c), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!answers) {
-    return c.json({ message: 'Interview not found' }, 404);
+    return c.json({ message: 'We could not find that interview.' }, 404);
   }
 
   return c.json(InterviewAnswersResponseSchema.parse({ answers }));
@@ -103,7 +106,7 @@ async function submitInterviewAnswerHandler(c: Context<Env>): Promise<Response> 
   const answer = await submitInterviewAnswer(getInterviewId(c), c.get('userId'), input, createDb(c.env.DATABASE_URL));
 
   if (!answer) {
-    return c.json({ message: 'Question not found for interview' }, 404);
+    return c.json({ message: 'We could not find that question.' }, 404);
   }
 
   return c.json(InterviewAnswerSchema.parse(answer), 201);
@@ -123,7 +126,7 @@ async function evaluateInterviewHandler(c: Context<Env>): Promise<Response> {
     const report = await evaluateInterview(interviewId, c.get('userId'), db, answerEvaluation);
 
     if (!report) {
-      return c.json({ message: 'Interview not found' }, 404);
+      return c.json({ message: 'We could not find that interview.' }, 404);
     }
 
     return c.json(InterviewReportResponseSchema.parse(report));
@@ -147,7 +150,7 @@ async function getInterviewReportHandler(c: Context<Env>): Promise<Response> {
   const report = await getInterviewReport(getInterviewId(c), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!report) {
-    return c.json({ message: 'Interview not found' }, 404);
+    return c.json({ message: 'We could not find that interview.' }, 404);
   }
 
   return c.json(InterviewReportResponseSchema.parse(report));
