@@ -90,4 +90,4 @@ pnpm wrangler secret put DATABASE_URL
 - [x] Add better loading states.
 - [x] Add "back to setup" and "restart interview" actions.
 - [x] Link the report page back to the interview.
-- [ ] Add answer autosave or clearer save behavior.
+- [x] Add answer autosave or clearer save behavior.

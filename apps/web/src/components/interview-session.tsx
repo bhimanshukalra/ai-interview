@@ -18,6 +18,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
   const evaluateInterview = useEvaluateInterview();
   const submitAnswer = useSubmitAnswer();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries(savedAnswers.map((answer) => [answer.questionId, answer.answer])),
   );
@@ -34,6 +35,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     const answer = answers[currentQuestion.id]?.trim();
 
     if (!answer) {
+      setSaveMessage('Write an answer before saving.');
       return false;
     }
 
@@ -45,6 +47,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
       },
     });
 
+    setSaveMessage('Answer saved.');
     return true;
   }
 
@@ -67,6 +70,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
 
   function restartInterview() {
     setCurrentIndex(0);
+    setSaveMessage(null);
   }
 
   if (isComplete) {
@@ -165,10 +169,13 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
           className="min-h-48 w-full resize-y rounded-lg border border-stone-300 bg-white px-3 py-3 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15"
           value={answers[currentQuestion.id] ?? ''}
           onChange={(event) =>
-            setAnswers((currentAnswers) => ({
-              ...currentAnswers,
-              [currentQuestion.id]: event.target.value
-            }))
+            {
+              setSaveMessage('Unsaved changes.');
+              setAnswers((currentAnswers) => ({
+                ...currentAnswers,
+                [currentQuestion.id]: event.target.value
+              }));
+            }
           }
           placeholder="Write your answer here..."
         />
@@ -188,6 +195,14 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
           onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
         >
           Previous
+        </button>
+        <button
+          className="min-h-11 rounded-lg border border-teal-700 px-4 py-2 font-semibold text-teal-800 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={submitAnswer.isPending}
+          type="button"
+          onClick={() => void saveCurrentAnswer()}
+        >
+          {submitAnswer.isPending ? 'Saving...' : 'Save answer'}
         </button>
         <button
           className="min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400"
@@ -210,6 +225,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
           Restart interview
         </button>
       </div>
+      {saveMessage ? <p className="mt-3 text-sm font-medium text-stone-600">{saveMessage}</p> : null}
       {submitAnswer.isError ? (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {getFriendlyApiErrorMessage(submitAnswer.error, 'Could not save this answer.')}
