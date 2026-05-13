@@ -20,7 +20,7 @@ pnpm --filter api test:gemini
 
 ### Vercel (`apps/web`)
 
-Use the repo root as the Vercel project root. The included `vercel.json` builds the `web` workspace with `pnpm --filter web build` and serves the Next.js output from `apps/web/.next`.
+Use `apps/web` as the Vercel project root. The included `vercel.json` builds the Next.js app with `pnpm build` and serves the output from `.next`.
 
 Required Vercel environment variables:
 
