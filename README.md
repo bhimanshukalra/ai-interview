@@ -16,6 +16,16 @@ pnpm dev
 pnpm --filter api test:gemini
 ```
 
+## Deployment
+
+### Vercel (`apps/web`)
+
+Use the repo root as the Vercel project root. The included `vercel.json` builds the `web` workspace with `pnpm --filter web build` and serves the Next.js output from `apps/web/.next`.
+
+Required Vercel environment variables:
+
+- `NEXT_PUBLIC_API_URL` - deployed API URL, for example `https://api.example.workers.dev`
+
 ## TODO
 
 - [x] Migrate frontend API calls from `fetch` to Axios.
@@ -35,7 +45,7 @@ pnpm --filter api test:gemini
 - [x] Improve Gemini evaluation prompts.
 - [x] Add a stricter scoring rubric.
 - [x] Make report feedback more useful.
-- [ ] Configure Vercel deployment for `apps/web`.
+- [x] Configure Vercel deployment for `apps/web`.
 - [ ] Configure Cloudflare Workers deployment for `apps/api`.
 - [ ] Configure Neon environment variables.
 - [ ] Configure CORS for the deployed frontend URL.
