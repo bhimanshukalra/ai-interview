@@ -23,32 +23,34 @@ export class ApiError extends Error {
   }
 }
 
-async function getErrorMessage(response: Response) {
-  const fallback = `API request failed with status ${response.status}`;
+function getMessageFromPayload(payload: unknown, fallback: string) {
+  const result = ApiErrorResponseSchema.safeParse(payload);
 
-  try {
-    const payload = ApiErrorResponseSchema.safeParse(await response.json());
-
-    if (!payload.success) {
-      return fallback;
-    }
-
-    const issueMessage = payload.data.issues
-      ?.map((issue) => (issue.path ? `${issue.path}: ${issue.message}` : issue.message))
-      .join(' ');
-
-    return [payload.data.message ?? payload.data.error, issueMessage].filter(Boolean).join(' ') || fallback;
-  } catch {
+  if (!result.success) {
     return fallback;
   }
+
+  const issueMessage = result.data.issues
+    ?.map((issue) => (issue.path ? `${issue.path}: ${issue.message}` : issue.message))
+    .join(' ');
+
+  return [result.data.message ?? result.data.error, issueMessage].filter(Boolean).join(' ') || fallback;
 }
 
-export async function createApiError(response: Response) {
-  return new ApiError(await getErrorMessage(response), response.status);
+export function createApiErrorFromPayload(payload: unknown, status: number) {
+  return new ApiError(getMessageFromPayload(payload, `API request failed with status ${status}`), status);
+}
+
+export function createApiNetworkError() {
+  return new ApiError('Could not reach the API. Make sure the local API server is running.', 0);
 }
 
 export function getFriendlyApiErrorMessage(error: unknown, fallback: string) {
   if (error instanceof ApiError) {
+    if (error.status === 0) {
+      return error.message;
+    }
+
     if (error.status === 503) {
       return `${error.message} Check the API environment and restart the server.`;
     }
