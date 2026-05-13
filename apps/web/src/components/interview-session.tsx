@@ -8,9 +8,37 @@ import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 import { useEvaluateInterview } from '@/features/interviews/use-evaluate-interview';
 import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
 
+type AnswerDrafts = Record<string, string>;
+
 type InterviewSessionProps = {
   interview: CreateInterviewResponse;
   savedAnswers: InterviewAnswer[];
+};
+
+type InterviewCompleteStateProps = {
+  answeredCount: number;
+  answers: AnswerDrafts;
+  interview: CreateInterviewResponse;
+  isReportPending: boolean;
+  isReportReady: boolean;
+  reportError: unknown;
+  onGenerateReport: () => void;
+  onRestartInterview: () => void;
+};
+
+type InterviewActiveStateProps = {
+  answeredCount: number;
+  answers: AnswerDrafts;
+  currentIndex: number;
+  interview: CreateInterviewResponse;
+  saveError: unknown;
+  saveMessage: string | null;
+  isSavingAnswer: boolean;
+  onAnswerChange: (questionId: string, answer: string) => void;
+  onBack: () => void;
+  onNext: () => void;
+  onRestartInterview: () => void;
+  onSaveAnswer: () => void;
 };
 
 export function InterviewSession({ interview, savedAnswers }: InterviewSessionProps) {
@@ -75,58 +103,122 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
 
   if (isComplete) {
     return (
-      <section className="w-full max-w-3xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Interview complete</p>
-        <h1 className="text-4xl font-bold leading-tight text-stone-950">Nice work</h1>
-        <p className="mt-4 text-lg leading-8 text-stone-600">
-          You answered {answeredCount} of {interview.questions.length} questions. Once every answer is saved, this MVP
-          can evaluate them and turn them into a feedback report.
-        </p>
-        <div className="mt-7 grid gap-4">
-          {interview.questions.map((question, index) => (
-            <article key={question.id} className="rounded-lg border border-stone-200 p-4">
-              <p className="text-sm font-semibold text-stone-500">Question {index + 1}</p>
-              <h2 className="mt-1 font-semibold text-stone-950">{question.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-stone-700">{answers[question.id] || 'No answer submitted.'}</p>
-            </article>
-          ))}
-        </div>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <button
-            className="min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-            disabled={!isReportReady || evaluateInterview.isPending}
-            type="button"
-            onClick={() => void generateReport()}
-          >
-            {evaluateInterview.isPending ? 'Generating report...' : 'Generate report'}
-          </button>
-          <button
-            className="min-h-11 rounded-lg border border-stone-300 px-4 py-2 font-semibold text-stone-700 transition hover:bg-stone-50"
-            type="button"
-            onClick={restartInterview}
-          >
-            Restart interview
-          </button>
-          <Link
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 font-semibold text-stone-700 transition hover:bg-stone-50"
-            href="/"
-          >
-            Back to setup
-          </Link>
-        </div>
-        {!isReportReady ? (
-          <p className="mt-3 text-sm font-medium text-stone-600">
-            Answer all questions before generating a report.
-          </p>
-        ) : null}
-        {evaluateInterview.isError ? (
-          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-            {getFriendlyApiErrorMessage(evaluateInterview.error, 'Could not generate the report.')}
-          </p>
-        ) : null}
-      </section>
+      <InterviewCompleteState
+        answeredCount={answeredCount}
+        answers={answers}
+        interview={interview}
+        isReportPending={evaluateInterview.isPending}
+        isReportReady={isReportReady}
+        reportError={evaluateInterview.error}
+        onGenerateReport={() => void generateReport()}
+        onRestartInterview={restartInterview}
+      />
     );
   }
+
+  return (
+    <InterviewActiveState
+      answeredCount={answeredCount}
+      answers={answers}
+      currentIndex={currentIndex}
+      interview={interview}
+      isSavingAnswer={submitAnswer.isPending}
+      saveError={submitAnswer.error}
+      saveMessage={saveMessage}
+      onAnswerChange={(questionId, answer) => {
+        setSaveMessage('Unsaved changes.');
+        setAnswers((currentAnswers) => ({
+          ...currentAnswers,
+          [questionId]: answer
+        }));
+      }}
+      onBack={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
+      onNext={() => void goToNextQuestion()}
+      onRestartInterview={restartInterview}
+      onSaveAnswer={() => void saveCurrentAnswer()}
+    />
+  );
+}
+
+function InterviewCompleteState({
+  answeredCount,
+  answers,
+  interview,
+  isReportPending,
+  isReportReady,
+  reportError,
+  onGenerateReport,
+  onRestartInterview
+}: InterviewCompleteStateProps) {
+  return (
+    <section className="w-full max-w-3xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Interview complete</p>
+      <h1 className="text-4xl font-bold leading-tight text-stone-950">Nice work</h1>
+      <p className="mt-4 text-lg leading-8 text-stone-600">
+        You answered {answeredCount} of {interview.questions.length} questions. Once every answer is saved, this MVP
+        can evaluate them and turn them into a feedback report.
+      </p>
+      <div className="mt-7 grid gap-4">
+        {interview.questions.map((question, index) => (
+          <article key={question.id} className="rounded-lg border border-stone-200 p-4">
+            <p className="text-sm font-semibold text-stone-500">Question {index + 1}</p>
+            <h2 className="mt-1 font-semibold text-stone-950">{question.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-stone-700">{answers[question.id] || 'No answer submitted.'}</p>
+          </article>
+        ))}
+      </div>
+      <div className="mt-7 flex flex-wrap gap-3">
+        <button
+          className="min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+          disabled={!isReportReady || isReportPending}
+          type="button"
+          onClick={onGenerateReport}
+        >
+          {isReportPending ? 'Generating report...' : 'Generate report'}
+        </button>
+        <button
+          className="min-h-11 rounded-lg border border-stone-300 px-4 py-2 font-semibold text-stone-700 transition hover:bg-stone-50"
+          type="button"
+          onClick={onRestartInterview}
+        >
+          Restart interview
+        </button>
+        <Link
+          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 px-4 py-2 font-semibold text-stone-700 transition hover:bg-stone-50"
+          href="/"
+        >
+          Back to setup
+        </Link>
+      </div>
+      {!isReportReady ? (
+        <p className="mt-3 text-sm font-medium text-stone-600">
+          Answer all questions before generating a report.
+        </p>
+      ) : null}
+      {reportError ? (
+        <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {getFriendlyApiErrorMessage(reportError, 'Could not generate the report.')}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function InterviewActiveState({
+  answeredCount,
+  answers,
+  currentIndex,
+  interview,
+  isSavingAnswer,
+  saveError,
+  saveMessage,
+  onAnswerChange,
+  onBack,
+  onNext,
+  onRestartInterview,
+  onSaveAnswer
+}: InterviewActiveStateProps) {
+  const currentQuestion = interview.questions[currentIndex];
 
   return (
     <section className="w-full max-w-3xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
@@ -168,15 +260,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
         <textarea
           className="min-h-48 w-full resize-y rounded-lg border border-stone-300 bg-white px-3 py-3 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15"
           value={answers[currentQuestion.id] ?? ''}
-          onChange={(event) =>
-            {
-              setSaveMessage('Unsaved changes.');
-              setAnswers((currentAnswers) => ({
-                ...currentAnswers,
-                [currentQuestion.id]: event.target.value
-              }));
-            }
-          }
+          onChange={(event) => onAnswerChange(currentQuestion.id, event.target.value)}
           placeholder="Write your answer here..."
         />
       </label>
@@ -192,25 +276,25 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
           className="min-h-11 rounded-lg border border-stone-300 px-4 py-2 font-semibold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={currentIndex === 0}
           type="button"
-          onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
+          onClick={onBack}
         >
           Previous
         </button>
         <button
           className="min-h-11 rounded-lg border border-teal-700 px-4 py-2 font-semibold text-teal-800 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={submitAnswer.isPending}
+          disabled={isSavingAnswer}
           type="button"
-          onClick={() => void saveCurrentAnswer()}
+          onClick={onSaveAnswer}
         >
-          {submitAnswer.isPending ? 'Saving...' : 'Save answer'}
+          {isSavingAnswer ? 'Saving...' : 'Save answer'}
         </button>
         <button
           className="min-h-11 rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-          disabled={submitAnswer.isPending}
+          disabled={isSavingAnswer}
           type="button"
-          onClick={() => void goToNextQuestion()}
+          onClick={onNext}
         >
-          {submitAnswer.isPending
+          {isSavingAnswer
             ? 'Saving...'
             : currentIndex === interview.questions.length - 1
               ? 'Finish interview'
@@ -220,15 +304,15 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
           className="min-h-11 rounded-lg border border-stone-300 px-4 py-2 font-semibold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={currentIndex === 0}
           type="button"
-          onClick={restartInterview}
+          onClick={onRestartInterview}
         >
           Restart interview
         </button>
       </div>
       {saveMessage ? <p className="mt-3 text-sm font-medium text-stone-600">{saveMessage}</p> : null}
-      {submitAnswer.isError ? (
+      {saveError ? (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          {getFriendlyApiErrorMessage(submitAnswer.error, 'Could not save this answer.')}
+          {getFriendlyApiErrorMessage(saveError, 'Could not save this answer.')}
         </p>
       ) : null}
     </section>
