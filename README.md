@@ -89,5 +89,5 @@ pnpm wrangler secret put DATABASE_URL
 - [x] Configure production `AI_*` environment variables.
 - [x] Add better loading states.
 - [x] Add "back to setup" and "restart interview" actions.
-- [ ] Link the report page back to the interview.
+- [x] Link the report page back to the interview.
 - [ ] Add answer autosave or clearer save behavior.
