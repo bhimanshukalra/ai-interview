@@ -2,6 +2,7 @@ import { integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-o
 
 export const interviews = pgTable('interviews', {
   id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
   status: text('status').notNull(),
   role: text('role').notNull(),
   level: text('level').notNull(),

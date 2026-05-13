@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { verify } from 'hono/jwt';
 import { CreateInterviewSchema, SubmitAnswerSchema } from '@ai-interview/shared';
 import { createDb } from '../db/client';
 import type { Env } from '../env';
@@ -19,13 +20,36 @@ interviewRoutes.use('*', async (c, next) => {
     return c.json({ message: 'DATABASE_URL is not configured for the API.' }, 503);
   }
 
+  if (!c.env.JWT_SECRET) {
+    return c.json({ message: 'JWT_SECRET is not configured for the API.' }, 503);
+  }
+
+  const authorization = c.req.header('Authorization');
+  const [scheme, token] = authorization?.split(/\s+/) ?? [];
+
+  if (scheme !== 'Bearer' || !token) {
+    return c.json({ message: 'Authorization bearer token is required.' }, 401);
+  }
+
+  try {
+    const payload = await verify(token, c.env.JWT_SECRET, 'HS256');
+
+    if (typeof payload.sub !== 'string' || payload.sub.trim().length === 0) {
+      return c.json({ message: 'JWT subject is required.' }, 401);
+    }
+
+    c.set('userId', payload.sub);
+  } catch {
+    return c.json({ message: 'Invalid authorization token.' }, 401);
+  }
+
   await next();
 });
 
 interviewRoutes.post('/', async (c) => {
   const body = await c.req.json();
   const input = CreateInterviewSchema.parse(body);
-  const interview = await createInterview(input, createDb(c.env.DATABASE_URL), {
+  const interview = await createInterview(input, c.get('userId'), createDb(c.env.DATABASE_URL), {
     provider: c.env.AI_PROVIDER,
     apiKey: c.env.AI_API_KEY,
     model: c.env.AI_MODEL
@@ -35,7 +59,7 @@ interviewRoutes.post('/', async (c) => {
 });
 
 interviewRoutes.get('/:id', async (c) => {
-  const interview = await getInterview(c.req.param('id'), createDb(c.env.DATABASE_URL));
+  const interview = await getInterview(c.req.param('id'), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!interview) {
     return c.json({ message: 'Interview not found' }, 404);
@@ -45,7 +69,11 @@ interviewRoutes.get('/:id', async (c) => {
 });
 
 interviewRoutes.get('/:id/answers', async (c) => {
-  const answers = await listInterviewAnswers(c.req.param('id'), createDb(c.env.DATABASE_URL));
+  const answers = await listInterviewAnswers(c.req.param('id'), c.get('userId'), createDb(c.env.DATABASE_URL));
+
+  if (!answers) {
+    return c.json({ message: 'Interview not found' }, 404);
+  }
 
   return c.json({ answers });
 });
@@ -53,7 +81,7 @@ interviewRoutes.get('/:id/answers', async (c) => {
 interviewRoutes.post('/:id/answers', async (c) => {
   const body = await c.req.json();
   const input = SubmitAnswerSchema.parse(body);
-  const answer = await submitInterviewAnswer(c.req.param('id'), input, createDb(c.env.DATABASE_URL));
+  const answer = await submitInterviewAnswer(c.req.param('id'), c.get('userId'), input, createDb(c.env.DATABASE_URL));
 
   if (!answer) {
     return c.json({ message: 'Question not found for interview' }, 404);
@@ -72,7 +100,7 @@ interviewRoutes.post('/:id/evaluate', async (c) => {
   };
 
   try {
-    const report = await evaluateInterview(interviewId, db, answerEvaluation);
+    const report = await evaluateInterview(interviewId, c.get('userId'), db, answerEvaluation);
 
     if (!report) {
       return c.json({ message: 'Interview not found' }, 404);
@@ -96,7 +124,7 @@ interviewRoutes.post('/:id/evaluate', async (c) => {
 });
 
 interviewRoutes.get('/:id/report', async (c) => {
-  const report = await getInterviewReport(c.req.param('id'), createDb(c.env.DATABASE_URL));
+  const report = await getInterviewReport(c.req.param('id'), c.get('userId'), createDb(c.env.DATABASE_URL));
 
   if (!report) {
     return c.json({ message: 'Interview not found' }, 404);

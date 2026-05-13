@@ -17,5 +17,29 @@ pnpm dev
 
 ## TODO
 
-- Migrate frontend API calls from `fetch` to Axios.
-- Add authorization with JWT passed in request headers.
+- [x] Migrate frontend API calls from `fetch` to Axios.
+- [x] Add authorization with JWT passed in request headers.
+- [x] Validate JWT in Hono middleware.
+- [x] Associate interviews with user id.
+- [x] Prevent loading someone else's interview.
+- [ ] Add a real login/auth flow to issue and store user JWTs.
+- [x] Require all questions to be answered before generating a report.
+- [x] Show answered question progress.
+- [x] Disable report generation until the interview is complete.
+- [x] Return clean API errors for invalid Zod input.
+- [x] Handle missing `DATABASE_URL`.
+- [x] Show better frontend messages for API and report failures.
+- [ ] Test with `AI_PROVIDER=gemini`.
+- [ ] Improve Gemini question prompts.
+- [ ] Improve Gemini evaluation prompts.
+- [ ] Add a stricter scoring rubric.
+- [ ] Make report feedback more useful.
+- [ ] Configure Vercel deployment for `apps/web`.
+- [ ] Configure Cloudflare Workers deployment for `apps/api`.
+- [ ] Configure Neon environment variables.
+- [ ] Configure CORS for the deployed frontend URL.
+- [ ] Configure production `AI_*` environment variables.
+- [ ] Add better loading states.
+- [ ] Add "back to setup" and "restart interview" actions.
+- [ ] Link the report page back to the interview.
+- [ ] Add answer autosave or clearer save behavior.

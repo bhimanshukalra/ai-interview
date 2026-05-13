@@ -25,6 +25,7 @@ export class InterviewNotReadyError extends Error {
 
 export async function createInterview(
   input: CreateInterviewInput,
+  userId: string,
   db: Database,
   questionGeneration: {
     provider?: "mock" | "gemini";
@@ -45,6 +46,7 @@ export async function createInterview(
 
   await db.insert(interviews).values({
     id: interview.id,
+    userId,
     status: interview.status,
     role: interview.input.role,
     level: interview.input.level,
@@ -73,12 +75,13 @@ export async function createInterview(
 
 export async function getInterview(
   id: string,
+  userId: string,
   db: Database,
 ): Promise<CreateInterviewResponse | null> {
   const [interview] = await db
     .select()
     .from(interviews)
-    .where(eq(interviews.id, id))
+    .where(and(eq(interviews.id, id), eq(interviews.userId, userId)))
     .limit(1);
 
   if (!interview) {
@@ -118,8 +121,15 @@ export async function getInterview(
 
 export async function listInterviewAnswers(
   interviewId: string,
+  userId: string,
   db: Database,
-): Promise<InterviewAnswer[]> {
+): Promise<InterviewAnswer[] | null> {
+  const interview = await getInterview(interviewId, userId, db);
+
+  if (!interview) {
+    return null;
+  }
+
   const answers = await db
     .select()
     .from(interviewAnswers)
@@ -135,16 +145,19 @@ export async function listInterviewAnswers(
 
 export async function submitInterviewAnswer(
   interviewId: string,
+  userId: string,
   input: SubmitAnswerInput,
   db: Database,
 ): Promise<InterviewAnswer | null> {
   const [question] = await db
     .select({ id: interviewQuestions.id })
     .from(interviewQuestions)
+    .innerJoin(interviews, eq(interviews.id, interviewQuestions.interviewId))
     .where(
       and(
         eq(interviewQuestions.id, input.questionId),
         eq(interviewQuestions.interviewId, interviewId),
+        eq(interviews.userId, userId),
       ),
     )
     .limit(1);
@@ -180,16 +193,22 @@ export async function submitInterviewAnswer(
 
 export async function evaluateInterview(
   interviewId: string,
+  userId: string,
   db: Database,
   answerEvaluation: AnswerEvaluationConfig = {},
 ): Promise<InterviewReportResponse | null> {
-  const interview = await getInterview(interviewId, db);
+  const interview = await getInterview(interviewId, userId, db);
 
   if (!interview) {
     return null;
   }
 
-  const answers = await listInterviewAnswers(interviewId, db);
+  const answers = await listInterviewAnswers(interviewId, userId, db);
+
+  if (!answers) {
+    return null;
+  }
+
   const answeredQuestionIds = new Set(
     answers.filter((answer) => answer.answer.trim().length > 0).map((answer) => answer.questionId),
   );
@@ -227,14 +246,15 @@ export async function evaluateInterview(
       });
   }
 
-  return getInterviewReport(interviewId, db);
+  return getInterviewReport(interviewId, userId, db);
 }
 
 export async function getInterviewReport(
   interviewId: string,
+  userId: string,
   db: Database,
 ): Promise<InterviewReportResponse | null> {
-  const interview = await getInterview(interviewId, db);
+  const interview = await getInterview(interviewId, userId, db);
 
   if (!interview) {
     return null;
