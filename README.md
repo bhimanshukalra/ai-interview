@@ -32,7 +32,7 @@ pnpm --filter api test:gemini
 - [x] Show better frontend messages for API and report failures.
 - [x] Test with `AI_PROVIDER=gemini`.
 - [x] Improve Gemini question prompts.
-- [ ] Improve Gemini evaluation prompts.
+- [x] Improve Gemini evaluation prompts.
 - [ ] Add a stricter scoring rubric.
 - [ ] Make report feedback more useful.
 - [ ] Configure Vercel deployment for `apps/web`.
