@@ -60,11 +60,21 @@ export function InterviewReportPage({ id }: InterviewReportPageProps) {
           {report.evaluations.map((evaluation, index) => (
             <article key={evaluation.id} className="rounded-lg border border-stone-200 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <h2 className="font-semibold text-stone-950">Answer {index + 1}</h2>
+                <div>
+                  <p className="text-sm font-semibold text-stone-500">Question {index + 1}</p>
+                  <h2 className="mt-1 font-semibold text-stone-950">{evaluation.questionTitle}</h2>
+                </div>
                 <span className="rounded-full bg-teal-50 px-3 py-1 text-sm font-bold text-teal-700">
                   {evaluation.score}/10
                 </span>
               </div>
+              <p className="mt-3 rounded-lg bg-stone-50 p-3 text-sm leading-6 text-stone-700">
+                {evaluation.question}
+              </p>
+              <details className="mt-3 rounded-lg border border-stone-200 p-3 text-sm text-stone-700">
+                <summary className="cursor-pointer font-semibold text-stone-800">Your answer</summary>
+                <p className="mt-2 whitespace-pre-wrap leading-6">{evaluation.answer}</p>
+              </details>
               <p className="mt-3 leading-7 text-stone-700">{evaluation.summary}</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>

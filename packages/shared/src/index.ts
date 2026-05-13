@@ -81,7 +81,10 @@ export const InterviewAnswerEvaluationSchema = AnswerEvaluationSchema.extend({
   id: z.string(),
   interviewId: z.string(),
   questionId: z.string(),
-  answerId: z.string()
+  questionTitle: z.string(),
+  question: z.string(),
+  answerId: z.string(),
+  answer: z.string()
 });
 
 export const InterviewReportResponseSchema = z.object({

@@ -34,7 +34,7 @@ pnpm --filter api test:gemini
 - [x] Improve Gemini question prompts.
 - [x] Improve Gemini evaluation prompts.
 - [x] Add a stricter scoring rubric.
-- [ ] Make report feedback more useful.
+- [x] Make report feedback more useful.
 - [ ] Configure Vercel deployment for `apps/web`.
 - [ ] Configure Cloudflare Workers deployment for `apps/api`.
 - [ ] Configure Neon environment variables.

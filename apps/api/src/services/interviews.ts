@@ -264,18 +264,41 @@ export async function getInterviewReport(
     .select()
     .from(answerEvaluations)
     .where(eq(answerEvaluations.interviewId, interviewId));
+  const answers = await listInterviewAnswers(interviewId, userId, db);
 
-  const mappedEvaluations: InterviewAnswerEvaluation[] = evaluations.map((evaluation) => ({
-    id: evaluation.id,
-    interviewId: evaluation.interviewId,
-    questionId: evaluation.questionId,
-    answerId: evaluation.answerId,
-    score: evaluation.score,
-    summary: evaluation.summary,
-    strengths: evaluation.strengths,
-    weaknesses: evaluation.weaknesses,
-    followUpQuestion: evaluation.followUpQuestion ?? undefined,
-  }));
+  if (!answers) {
+    return null;
+  }
+
+  const questionById = new Map(interview.questions.map((question, index) => [question.id, { ...question, index }]));
+  const answerById = new Map(answers.map((answer) => [answer.id, answer]));
+
+  const mappedEvaluations: InterviewAnswerEvaluation[] = evaluations
+    .map((evaluation) => {
+      const question = questionById.get(evaluation.questionId);
+      const answer = answerById.get(evaluation.answerId);
+
+      return {
+        id: evaluation.id,
+        interviewId: evaluation.interviewId,
+        questionId: evaluation.questionId,
+        questionTitle: question?.title ?? 'Interview question',
+        question: question?.question ?? 'Question unavailable.',
+        answerId: evaluation.answerId,
+        answer: answer?.answer ?? '',
+        score: evaluation.score,
+        summary: evaluation.summary,
+        strengths: evaluation.strengths,
+        weaknesses: evaluation.weaknesses,
+        followUpQuestion: evaluation.followUpQuestion ?? undefined,
+      };
+    })
+    .sort((left, right) => {
+      const leftIndex = questionById.get(left.questionId)?.index ?? Number.MAX_SAFE_INTEGER;
+      const rightIndex = questionById.get(right.questionId)?.index ?? Number.MAX_SAFE_INTEGER;
+
+      return leftIndex - rightIndex;
+    });
 
   const overallScore =
     mappedEvaluations.length > 0
