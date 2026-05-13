@@ -4,7 +4,7 @@ type LoadingPanelProps = {
   lines?: number;
 };
 
-export function LoadingPanel({ eyebrow, title, lines = 3 }: LoadingPanelProps) {
+export function LoadingPanel({ eyebrow, title, lines = 3 }: LoadingPanelProps): React.ReactElement {
   return (
     <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
       <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">{eyebrow}</p>

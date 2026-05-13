@@ -1,7 +1,7 @@
 const encoder = new TextEncoder();
 const iterations = 100_000;
 
-function bytesToBase64(bytes: Uint8Array) {
+function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
 
   for (const byte of bytes) {
@@ -11,11 +11,11 @@ function bytesToBase64(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-function base64ToBytes(value: string) {
+function base64ToBytes(value: string): Uint8Array {
   return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 }
 
-async function derivePasswordHash(password: string, salt: Uint8Array) {
+async function derivePasswordHash(password: string, salt: Uint8Array): Promise<Uint8Array> {
   const saltBuffer = salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer;
   const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
@@ -32,7 +32,7 @@ async function derivePasswordHash(password: string, salt: Uint8Array) {
   return new Uint8Array(bits);
 }
 
-function timingSafeEqual(left: Uint8Array, right: Uint8Array) {
+function timingSafeEqual(left: Uint8Array, right: Uint8Array): boolean {
   if (left.length !== right.length) {
     return false;
   }
@@ -46,14 +46,14 @@ function timingSafeEqual(left: Uint8Array, right: Uint8Array) {
   return difference === 0;
 }
 
-export async function hashPassword(password: string) {
+export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const hash = await derivePasswordHash(password, salt);
 
   return `${iterations}:${bytesToBase64(salt)}:${bytesToBase64(hash)}`;
 }
 
-export async function verifyPassword(password: string, storedHash: string) {
+export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
   const [storedIterations, salt, expectedHash] = storedHash.split(':');
 
   if (storedIterations !== String(iterations) || !salt || !expectedHash) {

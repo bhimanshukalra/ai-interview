@@ -23,7 +23,7 @@ export class ApiError extends Error {
   }
 }
 
-function getMessageFromPayload(payload: unknown, fallback: string) {
+function getMessageFromPayload(payload: unknown, fallback: string): string {
   const result = ApiErrorResponseSchema.safeParse(payload);
 
   if (!result.success) {
@@ -37,15 +37,15 @@ function getMessageFromPayload(payload: unknown, fallback: string) {
   return [result.data.message ?? result.data.error, issueMessage].filter(Boolean).join(' ') || fallback;
 }
 
-export function createApiErrorFromPayload(payload: unknown, status: number) {
+export function createApiErrorFromPayload(payload: unknown, status: number): ApiError {
   return new ApiError(getMessageFromPayload(payload, `API request failed with status ${status}`), status);
 }
 
-export function createApiNetworkError() {
+export function createApiNetworkError(): ApiError {
   return new ApiError('Could not reach the API. Make sure the local API server is running.', 0);
 }
 
-export function getFriendlyApiErrorMessage(error: unknown, fallback: string) {
+export function getFriendlyApiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     if (error.status === 0) {
       return error.message;

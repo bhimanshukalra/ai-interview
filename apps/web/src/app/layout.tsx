@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Text-based AI interview MVP'
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>): React.ReactElement {
   return (
     <html lang="en">
       <body>

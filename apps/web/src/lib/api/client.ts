@@ -11,7 +11,7 @@ const api = axios.create({
 
 const authTokenStorageKey = 'ai-interview.authToken';
 
-function getAuthorizationHeader() {
+function getAuthorizationHeader(): string | null {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -33,7 +33,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export function getStoredApiAuthorizationToken() {
+export function getStoredApiAuthorizationToken(): string | null {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -41,7 +41,7 @@ export function getStoredApiAuthorizationToken() {
   return window.localStorage.getItem(authTokenStorageKey)?.trim() ?? null;
 }
 
-export function setApiAuthorizationToken(token: string | null) {
+export function setApiAuthorizationToken(token: string | null): void {
   if (typeof window === 'undefined') {
     return;
   }

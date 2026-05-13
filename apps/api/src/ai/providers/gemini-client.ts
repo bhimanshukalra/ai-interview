@@ -22,7 +22,7 @@ type GenerateJsonOptions = {
   systemInstruction: string;
 };
 
-async function getGeminiErrorMessage(response: Response) {
+async function getGeminiErrorMessage(response: Response): Promise<string> {
   const text = await response.text();
 
   if (!text) {
@@ -48,7 +48,7 @@ async function getGeminiErrorMessage(response: Response) {
   }
 }
 
-export async function generateGeminiJson(options: GenerateJsonOptions) {
+export async function generateGeminiJson(options: GenerateJsonOptions): Promise<unknown> {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent`,
     {
