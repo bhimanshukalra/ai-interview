@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { ZodError } from 'zod';
 import type { Context } from 'hono';
 import type { Env } from './env';
+import { logError } from './logger';
 import { authRoutes } from './routes/auth';
 import { interviewRoutes } from './routes/interviews';
 
@@ -44,7 +45,7 @@ function handleAppError(error: Error, c: Context<Env>): Response {
     return c.json({ message: 'Invalid JSON request body.' }, 400);
   }
 
-  console.error(error);
+  logError('Unexpected API error.', error);
 
   return c.json({ message: 'Unexpected API error.' }, 500);
 }

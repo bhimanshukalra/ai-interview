@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from 'axios';
+import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
 import type { z } from 'zod';
 import { getApiBaseUrl } from '@/lib/config';
 import { createApiErrorFromPayload, createApiNetworkError } from './errors';
@@ -21,7 +21,7 @@ function getAuthorizationHeader(): string | null {
   return token ? `Bearer ${token}` : null;
 }
 
-api.interceptors.request.use((config) => {
+function applyApiRequestConfig(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
   config.baseURL = getApiBaseUrl();
 
   const authorization = getAuthorizationHeader();
@@ -31,7 +31,9 @@ api.interceptors.request.use((config) => {
   }
 
   return config;
-});
+}
+
+api.interceptors.request.use(applyApiRequestConfig);
 
 export function getStoredApiAuthorizationToken(): string | null {
   if (typeof window === 'undefined') {

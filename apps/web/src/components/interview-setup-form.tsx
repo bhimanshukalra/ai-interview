@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import type React from "react";
 import {
   CreateInterviewSchema,
+  InterviewLevelSchema,
+  InterviewTypeSchema,
   type CreateInterviewInput,
   type CreateInterviewResponse,
 } from "@ai-interview/shared";
@@ -156,7 +158,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
         <select
           className={inputClass}
           value={form.level}
-          onChange={(event) => onUpdateField("level", event.target.value as FormState["level"])}
+          onChange={(event) => onUpdateField("level", InterviewLevelSchema.parse(event.target.value))}
         >
           <option value="intern">Intern</option>
           <option value="junior">Junior</option>
@@ -170,7 +172,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
         <select
           className={inputClass}
           value={form.type}
-          onChange={(event) => onUpdateField("type", event.target.value as FormState["type"])}
+          onChange={(event) => onUpdateField("type", InterviewTypeSchema.parse(event.target.value))}
         >
           <option value="technical">Technical</option>
           <option value="behavioral">Behavioral</option>

@@ -2,6 +2,7 @@ import type { CreateInterviewInput, InterviewQuestion } from '@ai-interview/shar
 import type { QuestionGenerationConfig, QuestionGenerator } from '../ai/question-generator';
 import { createGeminiQuestionGenerator } from '../ai/providers/gemini';
 import { createMockQuestionGenerator } from '../ai/providers/mock';
+import { logWarning } from '../logger';
 
 function createConfiguredQuestionGenerator(config: QuestionGenerationConfig): QuestionGenerator {
   if (config.provider === 'gemini' && config.apiKey) {
@@ -34,7 +35,7 @@ export async function generateInterviewQuestions(
       throw error;
     }
 
-    console.warn(error);
+    logWarning('Question generation failed; using mock fallback.', error);
   }
 
   return fallbackGenerator.generateQuestions(input);

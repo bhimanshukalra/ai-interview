@@ -2,6 +2,7 @@ import type { AnswerEvaluation, CreateInterviewResponse, InterviewAnswer } from 
 import type { AnswerEvaluationConfig, AnswerEvaluator } from '../ai/answer-evaluator';
 import { createGeminiAnswerEvaluator } from '../ai/providers/gemini-answer-evaluator';
 import { createMockAnswerEvaluator } from '../ai/providers/mock-answer-evaluator';
+import { logWarning } from '../logger';
 
 function createConfiguredAnswerEvaluator(config: AnswerEvaluationConfig): AnswerEvaluator {
   if (config.provider === 'gemini' && config.apiKey) {
@@ -29,7 +30,7 @@ export async function evaluateInterviewAnswer(
       throw error;
     }
 
-    console.warn(error);
+    logWarning('Answer evaluation failed; using mock fallback.', error);
     return fallbackEvaluator.evaluateAnswer({ answer, interview });
   }
 }
