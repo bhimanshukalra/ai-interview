@@ -23,14 +23,31 @@ const GeneratedQuestionsSchema = z.object({
 });
 
 function buildPrompt(input: CreateInterviewInput) {
+  const focus = input.topic?.trim() || 'general role fundamentals';
+
   return [
-    `Create ${input.questionCount} interview questions.`,
-    `Role: ${input.role}`,
-    `Level: ${input.level}`,
-    `Interview type: ${input.type}`,
-    `Topic: ${input.topic ?? 'general role fundamentals'}`,
-    'Questions should be realistic, concise, and useful for a text-based mock interview.',
-    'Avoid trivia. Prefer questions that reveal reasoning, examples, tradeoffs, and practical experience.'
+    `Create exactly ${input.questionCount} interview questions for a text-based mock interview.`,
+    '',
+    'Candidate profile:',
+    `- Role: ${input.role}`,
+    `- Level: ${input.level}`,
+    `- Interview type: ${input.type}`,
+    `- Focus area: ${focus}`,
+    '',
+    'Question requirements:',
+    '- Match the expected scope and vocabulary for the candidate level.',
+    '- Ask practical, open-ended questions that can be answered in writing.',
+    '- Prefer prompts that reveal reasoning, tradeoffs, debugging approach, collaboration, and real project judgment.',
+    '- For technical questions, include enough scenario context that the candidate can make concrete choices.',
+    '- For behavioral questions, ask for specific examples, actions, outcomes, and reflection.',
+    '- Avoid trivia, yes/no questions, brainteasers, and duplicate coverage.',
+    '- Keep each question concise: one main question with at most one clarifying sentence.',
+    '',
+    'Rubric requirements:',
+    '- The excellent criterion should describe a strong, specific, evidence-backed answer.',
+    '- The good criterion should describe a mostly correct answer with minor gaps.',
+    '- The weak criterion should describe vague, incorrect, or shallow answers.',
+    '- Rubrics must be tailored to the exact question, not generic.'
   ].join('\n');
 }
 
@@ -74,7 +91,7 @@ async function generateQuestions(
       prompt: buildPrompt(input),
       responseJsonSchema: buildResponseSchema(),
       systemInstruction:
-        'You are an expert technical interviewer. Return only structured JSON that matches the provided schema.'
+        'You are a senior interviewer designing fair, job-relevant interview questions. Return only structured JSON that matches the provided schema.'
     })
   );
 

@@ -31,7 +31,7 @@ pnpm --filter api test:gemini
 - [x] Handle missing `DATABASE_URL`.
 - [x] Show better frontend messages for API and report failures.
 - [x] Test with `AI_PROVIDER=gemini`.
-- [ ] Improve Gemini question prompts.
+- [x] Improve Gemini question prompts.
 - [ ] Improve Gemini evaluation prompts.
 - [ ] Add a stricter scoring rubric.
 - [ ] Make report feedback more useful.
