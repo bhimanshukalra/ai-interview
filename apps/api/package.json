@@ -15,7 +15,8 @@
     "@ai-interview/shared": "workspace:*",
     "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.7.10"
+    "hono": "^4.7.10",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250510.0",

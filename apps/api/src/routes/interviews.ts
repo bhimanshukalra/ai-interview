@@ -16,7 +16,10 @@ export const interviewRoutes = new Hono<Env>();
 interviewRoutes.post('/', async (c) => {
   const body = await c.req.json();
   const input = CreateInterviewSchema.parse(body);
-  const interview = await createInterview(input, createDb(c.env.DATABASE_URL));
+  const interview = await createInterview(input, createDb(c.env.DATABASE_URL), {
+    geminiApiKey: c.env.GEMINI_API_KEY,
+    geminiModel: c.env.GEMINI_MODEL
+  });
 
   return c.json(interview, 201);
 });
