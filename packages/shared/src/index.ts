@@ -55,6 +55,21 @@ export const AnswerEvaluationSchema = z.object({
   followUpQuestion: z.string().optional()
 });
 
+export const InterviewAnswerEvaluationSchema = AnswerEvaluationSchema.extend({
+  id: z.string(),
+  interviewId: z.string(),
+  questionId: z.string(),
+  answerId: z.string()
+});
+
+export const InterviewReportResponseSchema = z.object({
+  interviewId: z.string(),
+  overallScore: z.number().min(0).max(10),
+  answeredQuestions: z.number().int().min(0),
+  totalQuestions: z.number().int().min(0),
+  evaluations: z.array(InterviewAnswerEvaluationSchema)
+});
+
 export type CreateInterviewInput = z.infer<typeof CreateInterviewSchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
 export type CreateInterviewResponse = z.infer<typeof CreateInterviewResponseSchema>;
@@ -62,3 +77,5 @@ export type SubmitAnswerInput = z.infer<typeof SubmitAnswerSchema>;
 export type InterviewAnswer = z.infer<typeof InterviewAnswerSchema>;
 export type InterviewAnswersResponse = z.infer<typeof InterviewAnswersResponseSchema>;
 export type AnswerEvaluation = z.infer<typeof AnswerEvaluationSchema>;
+export type InterviewAnswerEvaluation = z.infer<typeof InterviewAnswerEvaluationSchema>;
+export type InterviewReportResponse = z.infer<typeof InterviewReportResponseSchema>;

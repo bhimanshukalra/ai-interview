@@ -14,3 +14,8 @@ Text-based AI interview MVP built with Next.js, Hono, and shared TypeScript sche
 pnpm install
 pnpm dev
 ```
+
+## TODO
+
+- Migrate frontend API calls from `fetch` to Axios.
+- Add authorization with JWT passed in request headers.

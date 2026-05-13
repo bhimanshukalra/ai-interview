@@ -2,12 +2,14 @@ import type {
   CreateInterviewInput,
   CreateInterviewResponse,
   InterviewAnswer,
+  InterviewAnswerEvaluation,
   InterviewQuestion,
+  InterviewReportResponse,
   SubmitAnswerInput,
 } from "@ai-interview/shared";
 import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "../db/client";
-import { interviewAnswers, interviewQuestions, interviews } from "../db/schema";
+import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from "../db/schema";
 
 function createMockQuestions(input: CreateInterviewInput): InterviewQuestion[] {
   const topic = input.topic ?? input.role;
@@ -174,5 +176,119 @@ export async function submitInterviewAnswer(
     interviewId: answer.interviewId,
     questionId: answer.questionId,
     answer: answer.answer,
+  };
+}
+
+function createMockEvaluation(answer: InterviewAnswer): Omit<InterviewAnswerEvaluation, "id" | "interviewId" | "questionId" | "answerId"> {
+  const wordCount = answer.answer.trim().split(/\s+/).filter(Boolean).length;
+  const score = Math.max(3, Math.min(10, Math.round(wordCount / 12) + 3));
+
+  return {
+    score,
+    summary:
+      score >= 8
+        ? "Strong answer with enough detail to evaluate the candidate's thinking."
+        : score >= 6
+          ? "Reasonable answer, but it would benefit from more specific examples and tradeoffs."
+          : "The answer is too brief to show clear understanding.",
+    strengths:
+      score >= 7
+        ? ["Communicates the core idea", "Includes enough detail to discuss further"]
+        : ["Provides a starting point for discussion"],
+    weaknesses:
+      score >= 8
+        ? ["Could still mention edge cases or tradeoffs"]
+        : ["Needs more concrete examples", "Needs clearer reasoning"],
+    followUpQuestion: "Can you give a concrete example from a real project or implementation?"
+  };
+}
+
+export async function evaluateInterview(
+  interviewId: string,
+  db: Database,
+): Promise<InterviewReportResponse | null> {
+  const interview = await getInterview(interviewId, db);
+
+  if (!interview) {
+    return null;
+  }
+
+  const answers = await listInterviewAnswers(interviewId, db);
+
+  for (const answer of answers) {
+    const evaluation = createMockEvaluation(answer);
+
+    await db
+      .insert(answerEvaluations)
+      .values({
+        id: crypto.randomUUID(),
+        interviewId,
+        questionId: answer.questionId,
+        answerId: answer.id,
+        score: evaluation.score,
+        summary: evaluation.summary,
+        strengths: evaluation.strengths,
+        weaknesses: evaluation.weaknesses,
+        followUpQuestion: evaluation.followUpQuestion,
+      })
+      .onConflictDoUpdate({
+        target: answerEvaluations.answerId,
+        set: {
+          score: evaluation.score,
+          summary: evaluation.summary,
+          strengths: evaluation.strengths,
+          weaknesses: evaluation.weaknesses,
+          followUpQuestion: evaluation.followUpQuestion,
+          updatedAt: new Date(),
+        },
+      });
+  }
+
+  return getInterviewReport(interviewId, db);
+}
+
+export async function getInterviewReport(
+  interviewId: string,
+  db: Database,
+): Promise<InterviewReportResponse | null> {
+  const interview = await getInterview(interviewId, db);
+
+  if (!interview) {
+    return null;
+  }
+
+  const evaluations = await db
+    .select()
+    .from(answerEvaluations)
+    .where(eq(answerEvaluations.interviewId, interviewId));
+
+  const mappedEvaluations: InterviewAnswerEvaluation[] = evaluations.map((evaluation) => ({
+    id: evaluation.id,
+    interviewId: evaluation.interviewId,
+    questionId: evaluation.questionId,
+    answerId: evaluation.answerId,
+    score: evaluation.score,
+    summary: evaluation.summary,
+    strengths: evaluation.strengths,
+    weaknesses: evaluation.weaknesses,
+    followUpQuestion: evaluation.followUpQuestion ?? undefined,
+  }));
+
+  const overallScore =
+    mappedEvaluations.length > 0
+      ? Number(
+          (
+            mappedEvaluations.reduce((total, evaluation) => total + evaluation.score, 0) /
+            mappedEvaluations.length
+          ).toFixed(1),
+        )
+      : 0;
+
+  return {
+    interviewId,
+    overallScore,
+    answeredQuestions: mappedEvaluations.length,
+    totalQuestions: interview.questions.length,
+    evaluations: mappedEvaluations,
   };
 }

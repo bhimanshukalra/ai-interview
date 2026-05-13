@@ -2,7 +2,14 @@ import { Hono } from 'hono';
 import { CreateInterviewSchema, SubmitAnswerSchema } from '@ai-interview/shared';
 import { createDb } from '../db/client';
 import type { Env } from '../env';
-import { createInterview, getInterview, listInterviewAnswers, submitInterviewAnswer } from '../services/interviews';
+import {
+  createInterview,
+  evaluateInterview,
+  getInterview,
+  getInterviewReport,
+  listInterviewAnswers,
+  submitInterviewAnswer
+} from '../services/interviews';
 
 export const interviewRoutes = new Hono<Env>();
 
@@ -40,4 +47,24 @@ interviewRoutes.post('/:id/answers', async (c) => {
   }
 
   return c.json(answer, 201);
+});
+
+interviewRoutes.post('/:id/evaluate', async (c) => {
+  const report = await evaluateInterview(c.req.param('id'), createDb(c.env.DATABASE_URL));
+
+  if (!report) {
+    return c.json({ message: 'Interview not found' }, 404);
+  }
+
+  return c.json(report);
+});
+
+interviewRoutes.get('/:id/report', async (c) => {
+  const report = await getInterviewReport(c.req.param('id'), createDb(c.env.DATABASE_URL));
+
+  if (!report) {
+    return c.json({ message: 'Interview not found' }, 404);
+  }
+
+  return c.json(report);
 });

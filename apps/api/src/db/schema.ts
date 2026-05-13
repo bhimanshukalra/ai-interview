@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const interviews = pgTable('interviews', {
   id: text('id').primaryKey(),
@@ -41,4 +41,28 @@ export const interviewAnswers = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
   },
   (table) => [uniqueIndex('interview_answers_interview_question_unique').on(table.interviewId, table.questionId)]
+);
+
+export const answerEvaluations = pgTable(
+  'answer_evaluations',
+  {
+    id: text('id').primaryKey(),
+    interviewId: text('interview_id')
+      .notNull()
+      .references(() => interviews.id, { onDelete: 'cascade' }),
+    questionId: text('question_id')
+      .notNull()
+      .references(() => interviewQuestions.id, { onDelete: 'cascade' }),
+    answerId: text('answer_id')
+      .notNull()
+      .references(() => interviewAnswers.id, { onDelete: 'cascade' }),
+    score: integer('score').notNull(),
+    summary: text('summary').notNull(),
+    strengths: jsonb('strengths').$type<string[]>().notNull(),
+    weaknesses: jsonb('weaknesses').$type<string[]>().notNull(),
+    followUpQuestion: text('follow_up_question'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [uniqueIndex('answer_evaluations_answer_unique').on(table.answerId)]
 );
