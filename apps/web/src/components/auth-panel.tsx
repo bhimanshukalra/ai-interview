@@ -18,6 +18,22 @@ type AuthPanelProps = {
   children: React.ReactNode;
 };
 
+type AuthFormStateProps = {
+  error: string | null;
+  form: typeof initialForm;
+  isPending: boolean;
+  mode: AuthMode;
+  onModeChange: (mode: AuthMode) => void;
+  onSubmit: (event: FormSubmitEvent) => void;
+  onUpdateField: (field: keyof typeof initialForm, value: string) => void;
+};
+
+type AuthenticatedStateProps = {
+  children: React.ReactNode;
+  onLogout: () => void;
+  user: AuthUser;
+};
+
 type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0];
 
 const initialForm = {
@@ -113,36 +129,65 @@ export function AuthPanel({ children }: AuthPanelProps) {
   }
 
   if (isCheckingSession) {
-    return (
-      <LoadingPanel eyebrow="Account" title="Checking session" lines={2} />
-    );
+    return <AuthCheckingState />;
   }
 
   if (user) {
-    return (
-      <div className="grid w-full max-w-3xl gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-sm">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
-              Signed in
-            </p>
-            <p className="font-semibold text-stone-950">
-              {user.name} <span className="font-normal text-stone-500">{user.email}</span>
-            </p>
-          </div>
-          <button
-            className="min-h-10 rounded-lg border border-stone-300 px-3 py-2 font-semibold text-stone-700 transition hover:bg-stone-50"
-            type="button"
-            onClick={logout}
-          >
-            Sign out
-          </button>
-        </div>
-        {children}
-      </div>
-    );
+    return <AuthenticatedState user={user} onLogout={logout}>{children}</AuthenticatedState>;
   }
 
+  return (
+    <AuthFormState
+      error={error}
+      form={form}
+      isPending={isPending}
+      mode={mode}
+      onModeChange={(nextMode) => {
+        setError(null);
+        setMode(nextMode);
+      }}
+      onSubmit={handleSubmit}
+      onUpdateField={updateField}
+    />
+  );
+}
+
+function AuthCheckingState() {
+  return <LoadingPanel eyebrow="Account" title="Checking session" lines={2} />;
+}
+
+function AuthenticatedState({ children, onLogout, user }: AuthenticatedStateProps) {
+  return (
+    <div className="grid w-full max-w-3xl gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-sm">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-teal-700">Signed in</p>
+          <p className="font-semibold text-stone-950">
+            {user.name} <span className="font-normal text-stone-500">{user.email}</span>
+          </p>
+        </div>
+        <button
+          className="min-h-10 rounded-lg border border-stone-300 px-3 py-2 font-semibold text-stone-700 transition hover:bg-stone-50"
+          type="button"
+          onClick={onLogout}
+        >
+          Sign out
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function AuthFormState({
+  error,
+  form,
+  isPending,
+  mode,
+  onModeChange,
+  onSubmit,
+  onUpdateField
+}: AuthFormStateProps) {
   return (
     <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
       <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">
@@ -152,14 +197,14 @@ export function AuthPanel({ children }: AuthPanelProps) {
         {mode === "register" ? "Create your account" : "Sign in"}
       </h1>
 
-      <form className="mt-7 grid gap-4" onSubmit={handleSubmit}>
+      <form className="mt-7 grid gap-4" onSubmit={onSubmit}>
         {mode === "register" ? (
           <label className="grid gap-2">
             <span className="text-sm font-semibold text-stone-600">Name</span>
             <input
               className={inputClass}
               value={form.name}
-              onChange={(event) => updateField("name", event.target.value)}
+              onChange={(event) => onUpdateField("name", event.target.value)}
               placeholder="Ada Lovelace"
             />
           </label>
@@ -171,7 +216,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
             className={inputClass}
             type="email"
             value={form.email}
-            onChange={(event) => updateField("email", event.target.value)}
+            onChange={(event) => onUpdateField("email", event.target.value)}
             placeholder="you@example.com"
           />
         </label>
@@ -182,7 +227,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
             className={inputClass}
             type="password"
             value={form.password}
-            onChange={(event) => updateField("password", event.target.value)}
+            onChange={(event) => onUpdateField("password", event.target.value)}
             placeholder="At least 8 characters"
           />
         </label>
@@ -210,8 +255,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
         className="mt-4 font-semibold text-teal-800 transition hover:text-teal-900"
         type="button"
         onClick={() => {
-          setError(null);
-          setMode((current) => (current === "login" ? "register" : "login"));
+          onModeChange(mode === "login" ? "register" : "login");
         }}
       >
         {mode === "register"
