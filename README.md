@@ -36,6 +36,28 @@ pnpm --filter api deploy
 
 Set production secrets with `wrangler secret put` from `apps/api` before deploying.
 
+Required Cloudflare secret:
+
+- `DATABASE_URL` - Neon pooled PostgreSQL connection string with SSL enabled
+
+### Neon
+
+Create a Neon project and use the pooled connection string for both local migrations and the deployed API.
+
+Local API development uses `apps/api/.dev.vars`:
+
+```bash
+DATABASE_URL=postgresql://user:password@host.neon.tech/dbname?sslmode=require
+```
+
+Production API setup:
+
+```bash
+cd apps/api
+pnpm db:migrate
+pnpm wrangler secret put DATABASE_URL
+```
+
 ## TODO
 
 - [x] Migrate frontend API calls from `fetch` to Axios.
@@ -57,7 +79,7 @@ Set production secrets with `wrangler secret put` from `apps/api` before deployi
 - [x] Make report feedback more useful.
 - [x] Configure Vercel deployment for `apps/web`.
 - [x] Configure Cloudflare Workers deployment for `apps/api`.
-- [ ] Configure Neon environment variables.
+- [x] Configure Neon environment variables.
 - [ ] Configure CORS for the deployed frontend URL.
 - [ ] Configure production `AI_*` environment variables.
 - [ ] Add better loading states.
