@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { InterviewSession } from '@/components/interview-session';
+import { LoadingPanel } from '@/components/loading-panel';
 import { useInterviewAnswers } from '@/features/interviews/use-interview-answers';
 import { useInterviewSession } from '@/features/interviews/use-interview-session';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
@@ -22,7 +23,7 @@ export function InterviewSessionPage({ id }: InterviewSessionPageProps) {
   if (isLoading || areAnswersLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-        <p className="text-stone-600">Loading interview...</p>
+        <LoadingPanel eyebrow="Interview session" title="Loading interview" />
       </main>
     );
   }

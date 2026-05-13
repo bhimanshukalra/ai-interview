@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import { LoginSchema, RegisterSchema, type AuthUser } from "@ai-interview/shared";
 import { getCurrentUser, login, register } from "@/features/auth/api";
+import { LoadingPanel } from "@/components/loading-panel";
 import {
   getStoredApiAuthorizationToken,
   setApiAuthorizationToken,
@@ -107,9 +108,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
 
   if (isCheckingSession) {
     return (
-      <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
-        <p className="text-stone-600">Checking session...</p>
-      </section>
+      <LoadingPanel eyebrow="Account" title="Checking session" lines={2} />
     );
   }
 

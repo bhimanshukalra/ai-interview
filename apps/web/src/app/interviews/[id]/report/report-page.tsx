@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { LoadingPanel } from '@/components/loading-panel';
 import { useInterviewReport } from '@/features/interviews/use-interview-report';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 
@@ -14,7 +15,7 @@ export function InterviewReportPage({ id }: InterviewReportPageProps) {
   if (isLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-        <p className="text-stone-600">Loading report...</p>
+        <LoadingPanel eyebrow="Report" title="Loading feedback" />
       </main>
     );
   }
