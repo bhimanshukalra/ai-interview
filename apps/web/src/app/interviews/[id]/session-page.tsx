@@ -12,7 +12,7 @@ type InterviewSessionPageProps = {
   id: string;
 };
 
-export function InterviewSessionPage({ id }: InterviewSessionPageProps) {
+export function InterviewSessionPage({ id }: InterviewSessionPageProps): React.ReactElement {
   const { data: interview, error: interviewError, isError, isLoading } = useInterviewSession(id);
   const {
     data: answersResponse,
@@ -32,7 +32,7 @@ export function InterviewSessionPage({ id }: InterviewSessionPageProps) {
   return <SessionLoadedState interview={interview} savedAnswers={answersResponse?.answers ?? []} />;
 }
 
-function SessionLoadingState() {
+function SessionLoadingState(): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
       <LoadingPanel eyebrow="Interview session" title="Loading interview" />
@@ -40,7 +40,7 @@ function SessionLoadingState() {
   );
 }
 
-function SessionErrorState({ error }: { error: unknown }) {
+function SessionErrorState({ error }: { error: unknown }): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
       <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
@@ -69,7 +69,7 @@ function SessionLoadedState({
 }: {
   interview: CreateInterviewResponse;
   savedAnswers: InterviewAnswer[];
-}) {
+}): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
       <InterviewSession interview={interview} savedAnswers={savedAnswers} />

@@ -49,7 +49,7 @@ function formatIssue(issue: z.ZodIssue) {
   return `${field}: ${issue.message}`;
 }
 
-export function InterviewSetupForm() {
+export function InterviewSetupForm(): React.ReactElement {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initialForm);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -75,11 +75,11 @@ export function InterviewSetupForm() {
   function updateField<Key extends keyof FormState>(
     field: Key,
     value: FormState[Key],
-  ) {
+  ): void {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function handleSubmit(event: FormSubmitEvent) {
+  async function handleSubmit(event: FormSubmitEvent): Promise<void> {
     event.preventDefault();
 
     const result = CreateInterviewSchema.safeParse({
@@ -110,7 +110,7 @@ export function InterviewSetupForm() {
         </h1>
         <p className="mt-4 text-lg leading-8 text-stone-600">
           Choose the interview shape. Submitting creates a mock interview
-          session through the Hono API.
+          session for you to practice with.
         </p>
       </div>
 
@@ -138,7 +138,7 @@ const labelClass = "text-sm font-semibold text-stone-600";
 const inputClass =
   "min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15";
 
-function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps) {
+function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps): React.ReactElement {
   return (
     <>
       <label className={`${fieldClass} sm:col-span-2`}>
@@ -212,7 +212,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
   );
 }
 
-function SetupErrorState({ submitError, validationErrors }: SetupErrorStateProps) {
+function SetupErrorState({ submitError, validationErrors }: SetupErrorStateProps): React.ReactElement | null {
   if (validationErrors.length === 0 && !submitError) {
     return null;
   }
@@ -236,7 +236,7 @@ function SetupErrorState({ submitError, validationErrors }: SetupErrorStateProps
   );
 }
 
-function InterviewCreatedState({ interview }: InterviewCreatedStateProps) {
+function InterviewCreatedState({ interview }: InterviewCreatedStateProps): React.ReactElement {
   return (
     <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 sm:col-span-2" role="status">
       <p className="font-semibold">Interview created.</p>

@@ -41,7 +41,7 @@ type InterviewActiveStateProps = {
   onSaveAnswer: () => void;
 };
 
-export function InterviewSession({ interview, savedAnswers }: InterviewSessionProps) {
+export function InterviewSession({ interview, savedAnswers }: InterviewSessionProps): React.ReactElement {
   const router = useRouter();
   const evaluateInterview = useEvaluateInterview();
   const submitAnswer = useSubmitAnswer();
@@ -59,7 +59,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
   );
   const isReportReady = answeredCount === interview.questions.length;
 
-  async function saveCurrentAnswer() {
+  async function saveCurrentAnswer(): Promise<boolean> {
     const answer = answers[currentQuestion.id]?.trim();
 
     if (!answer) {
@@ -79,7 +79,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     return true;
   }
 
-  async function goToNextQuestion() {
+  async function goToNextQuestion(): Promise<void> {
     const didSave = await saveCurrentAnswer();
 
     if (didSave) {
@@ -87,7 +87,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     }
   }
 
-  async function generateReport() {
+  async function generateReport(): Promise<void> {
     try {
       await evaluateInterview.mutateAsync(interview.id);
       router.push(`/interviews/${interview.id}/report`);
@@ -96,7 +96,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     }
   }
 
-  function restartInterview() {
+  function restartInterview(): void {
     setCurrentIndex(0);
     setSaveMessage(null);
   }
@@ -149,7 +149,7 @@ function InterviewCompleteState({
   reportError,
   onGenerateReport,
   onRestartInterview
-}: InterviewCompleteStateProps) {
+}: InterviewCompleteStateProps): React.ReactElement {
   return (
     <section className="w-full max-w-3xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
       <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Interview complete</p>
@@ -217,7 +217,7 @@ function InterviewActiveState({
   onNext,
   onRestartInterview,
   onSaveAnswer
-}: InterviewActiveStateProps) {
+}: InterviewActiveStateProps): React.ReactElement {
   const currentQuestion = interview.questions[currentIndex];
 
   return (

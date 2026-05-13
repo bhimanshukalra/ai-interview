@@ -6,7 +6,7 @@ type PageProps = {
   }>;
 };
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params }: PageProps): Promise<React.ReactElement> {
   const { id } = await params;
 
   return <InterviewReportPage id={id} />;

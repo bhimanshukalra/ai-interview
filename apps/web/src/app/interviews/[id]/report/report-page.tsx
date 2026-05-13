@@ -10,7 +10,7 @@ type InterviewReportPageProps = {
   id: string;
 };
 
-export function InterviewReportPage({ id }: InterviewReportPageProps) {
+export function InterviewReportPage({ id }: InterviewReportPageProps): React.ReactElement {
   const { data: report, error, isError, isLoading } = useInterviewReport(id);
 
   if (isLoading) {
@@ -24,7 +24,7 @@ export function InterviewReportPage({ id }: InterviewReportPageProps) {
   return <ReportLoadedState id={id} report={report} />;
 }
 
-function ReportLoadingState() {
+function ReportLoadingState(): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
       <LoadingPanel eyebrow="Report" title="Loading feedback" />
@@ -32,7 +32,7 @@ function ReportLoadingState() {
   );
 }
 
-function ReportErrorState({ id, error }: { id: string; error: unknown }) {
+function ReportErrorState({ id, error }: { id: string; error: unknown }): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
       <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
@@ -52,7 +52,7 @@ function ReportErrorState({ id, error }: { id: string; error: unknown }) {
   );
 }
 
-function ReportLoadedState({ id, report }: { id: string; report: InterviewReportResponse }) {
+function ReportLoadedState({ id, report }: { id: string; report: InterviewReportResponse }): React.ReactElement {
   return (
     <main className="min-h-screen bg-stone-100 px-5 py-10 text-stone-950">
       <section className="mx-auto w-full max-w-4xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">

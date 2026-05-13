@@ -1,18 +1,24 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, type UseMutationResult, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { InterviewReportResponse } from '@ai-interview/shared';
 import { evaluateInterview } from './api';
 import { interviewQueryKeys } from './query-keys';
 
-export function useEvaluateInterview() {
+function handleEvaluateSuccess(queryClient: QueryClient, report: InterviewReportResponse): void {
+  queryClient.setQueryData(interviewQueryKeys.report(report.interviewId), report);
+}
+
+export function useEvaluateInterview(): UseMutationResult<InterviewReportResponse, Error, string> {
   const queryClient = useQueryClient();
+
+  function handleMutationSuccess(report: InterviewReportResponse): void {
+    handleEvaluateSuccess(queryClient, report);
+  }
 
   return useMutation<InterviewReportResponse, Error, string>({
     mutationKey: interviewQueryKeys.evaluate,
     mutationFn: evaluateInterview,
-    onSuccess: (report) => {
-      queryClient.setQueryData(interviewQueryKeys.report(report.interviewId), report);
-    }
+    onSuccess: handleMutationSuccess
   });
 }

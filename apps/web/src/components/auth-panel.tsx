@@ -45,7 +45,7 @@ const initialForm = {
 const inputClass =
   "min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15";
 
-export function AuthPanel({ children }: AuthPanelProps) {
+export function AuthPanel({ children }: AuthPanelProps): React.ReactElement {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<AuthMode>("login");
   const [form, setForm] = useState(initialForm);
@@ -85,11 +85,11 @@ export function AuthPanel({ children }: AuthPanelProps) {
     };
   }, []);
 
-  function updateField(field: keyof typeof initialForm, value: string) {
+  function updateField(field: keyof typeof initialForm, value: string): void {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function handleSubmit(event: FormSubmitEvent) {
+  async function handleSubmit(event: FormSubmitEvent): Promise<void> {
     event.preventDefault();
     setError(null);
 
@@ -122,7 +122,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
     }
   }
 
-  function logout() {
+  function logout(): void {
     setApiAuthorizationToken(null);
     queryClient.clear();
     setUser(null);
@@ -152,11 +152,11 @@ export function AuthPanel({ children }: AuthPanelProps) {
   );
 }
 
-function AuthCheckingState() {
+function AuthCheckingState(): React.ReactElement {
   return <LoadingPanel eyebrow="Account" title="Checking session" lines={2} />;
 }
 
-function AuthenticatedState({ children, onLogout, user }: AuthenticatedStateProps) {
+function AuthenticatedState({ children, onLogout, user }: AuthenticatedStateProps): React.ReactElement {
   return (
     <div className="grid w-full max-w-3xl gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-sm">
@@ -187,7 +187,7 @@ function AuthFormState({
   onModeChange,
   onSubmit,
   onUpdateField
-}: AuthFormStateProps) {
+}: AuthFormStateProps): React.ReactElement {
   return (
     <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
       <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">
