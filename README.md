@@ -13,6 +13,7 @@ Text-based AI interview MVP built with Next.js, Hono, and shared TypeScript sche
 ```bash
 pnpm install
 pnpm dev
+pnpm --filter api test:gemini
 ```
 
 ## TODO
@@ -29,7 +30,7 @@ pnpm dev
 - [x] Return clean API errors for invalid Zod input.
 - [x] Handle missing `DATABASE_URL`.
 - [x] Show better frontend messages for API and report failures.
-- [ ] Test with `AI_PROVIDER=gemini`.
+- [x] Test with `AI_PROVIDER=gemini`.
 - [ ] Improve Gemini question prompts.
 - [ ] Improve Gemini evaluation prompts.
 - [ ] Add a stricter scoring rubric.
