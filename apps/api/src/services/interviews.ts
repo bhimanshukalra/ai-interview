@@ -15,8 +15,9 @@ export async function createInterview(
   input: CreateInterviewInput,
   db: Database,
   questionGeneration: {
-    geminiApiKey?: string;
-    geminiModel?: string;
+    provider?: "mock" | "gemini";
+    apiKey?: string;
+    model?: string;
   } = {},
 ): Promise<CreateInterviewResponse> {
   const interview: CreateInterviewResponse = {
@@ -24,8 +25,9 @@ export async function createInterview(
     status: "created",
     input,
     questions: await generateInterviewQuestions(input, {
-      apiKey: questionGeneration.geminiApiKey,
-      model: questionGeneration.geminiModel,
+      provider: questionGeneration.provider,
+      apiKey: questionGeneration.apiKey,
+      model: questionGeneration.model,
     }),
   };
 

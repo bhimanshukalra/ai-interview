@@ -17,8 +17,9 @@ interviewRoutes.post('/', async (c) => {
   const body = await c.req.json();
   const input = CreateInterviewSchema.parse(body);
   const interview = await createInterview(input, createDb(c.env.DATABASE_URL), {
-    geminiApiKey: c.env.GEMINI_API_KEY,
-    geminiModel: c.env.GEMINI_MODEL
+    provider: c.env.AI_PROVIDER,
+    apiKey: c.env.AI_API_KEY,
+    model: c.env.AI_MODEL
   });
 
   return c.json(interview, 201);

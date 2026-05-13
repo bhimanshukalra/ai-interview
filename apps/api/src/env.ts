@@ -1,7 +1,8 @@
 export type Env = {
   Bindings: {
     DATABASE_URL: string;
-    GEMINI_API_KEY?: string;
-    GEMINI_MODEL?: string;
+    AI_PROVIDER?: "mock" | "gemini";
+    AI_API_KEY?: string;
+    AI_MODEL?: string;
   };
 };
