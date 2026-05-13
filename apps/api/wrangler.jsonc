@@ -5,6 +5,10 @@
   "compatibility_date": "2026-05-11",
   "workers_dev": true,
   "upload_source_maps": true,
+  "vars": {
+    "AI_PROVIDER": "gemini",
+    "AI_MODEL": "gemini-2.5-flash"
+  },
   "observability": {
     "enabled": true
   }

@@ -36,10 +36,14 @@ pnpm --filter api deploy
 
 Set production secrets with `wrangler secret put` from `apps/api` before deploying.
 
-Required Cloudflare secret:
+Required Cloudflare secrets:
 
 - `DATABASE_URL` - Neon pooled PostgreSQL connection string with SSL enabled
+- `JWT_SECRET` - long random value used to sign auth tokens
+- `AI_API_KEY` - Gemini API key for production question generation and evaluation
 - `CORS_ORIGIN` - deployed frontend origin, for example `https://ai-interview.example.com`
+
+Production `AI_PROVIDER=gemini` and `AI_MODEL=gemini-2.5-flash` are set in `wrangler.jsonc`.
 
 ### Neon
 
@@ -82,7 +86,7 @@ pnpm wrangler secret put DATABASE_URL
 - [x] Configure Cloudflare Workers deployment for `apps/api`.
 - [x] Configure Neon environment variables.
 - [x] Configure CORS for the deployed frontend URL.
-- [ ] Configure production `AI_*` environment variables.
+- [x] Configure production `AI_*` environment variables.
 - [ ] Add better loading states.
 - [ ] Add "back to setup" and "restart interview" actions.
 - [ ] Link the report page back to the interview.
