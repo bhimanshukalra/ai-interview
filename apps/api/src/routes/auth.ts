@@ -1,13 +1,15 @@
 import { Hono } from 'hono';
 import { sign, verify } from 'hono/jwt';
 import { eq } from 'drizzle-orm';
-import { AuthUserSchema, LoginSchema, RegisterSchema } from '@ai-interview/shared';
+import { AuthUserSchema, CurrentUserResponseSchema, LoginSchema, RegisterSchema } from '@ai-interview/shared';
 import { createDb } from '../db/client';
 import { users } from '../db/schema';
 import type { Env } from '../env';
 import { hashPassword, verifyPassword } from '../services/passwords';
 
 export const authRoutes = new Hono<Env>();
+
+const authTokenTtlSeconds = 60 * 60 * 24 * 7;
 
 function getAuthConfig(env: Env['Bindings']) {
   if (!env.DATABASE_URL) {
@@ -33,7 +35,7 @@ async function issueToken(user: { id: string; email: string; name: string }, sec
       email: user.email,
       name: user.name,
       iat: now,
-      exp: now + 60 * 60 * 24 * 7
+      exp: now + authTokenTtlSeconds
     },
     secret,
     'HS256'
@@ -119,7 +121,7 @@ authRoutes.get('/me', async (c) => {
       return c.json({ message: 'User not found.' }, 404);
     }
 
-    return c.json({ user: AuthUserSchema.parse(user) });
+    return c.json(CurrentUserResponseSchema.parse({ user }));
   } catch {
     return c.json({ message: 'Invalid authorization token.' }, 401);
   }

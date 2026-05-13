@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { InterviewReportResponse } from '@ai-interview/shared';
 import { LoadingPanel } from '@/components/loading-panel';
 import { useInterviewReport } from '@/features/interviews/use-interview-report';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
@@ -13,33 +14,45 @@ export function InterviewReportPage({ id }: InterviewReportPageProps) {
   const { data: report, error, isError, isLoading } = useInterviewReport(id);
 
   if (isLoading) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-        <LoadingPanel eyebrow="Report" title="Loading feedback" />
-      </main>
-    );
+    return <ReportLoadingState />;
   }
 
   if (isError || !report) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-        <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Report unavailable</p>
-          <h1 className="text-3xl font-bold text-stone-950">Could not load report</h1>
-          <p className="mt-3 leading-7 text-stone-600">
-            {getFriendlyApiErrorMessage(error, 'Complete the interview and generate a report to see feedback.')}
-          </p>
-          <Link
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
-            href={`/interviews/${id}`}
-          >
-            Back to interview
-          </Link>
-        </section>
-      </main>
-    );
+    return <ReportErrorState id={id} error={error} />;
   }
 
+  return <ReportLoadedState id={id} report={report} />;
+}
+
+function ReportLoadingState() {
+  return (
+    <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
+      <LoadingPanel eyebrow="Report" title="Loading feedback" />
+    </main>
+  );
+}
+
+function ReportErrorState({ id, error }: { id: string; error: unknown }) {
+  return (
+    <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
+      <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Report unavailable</p>
+        <h1 className="text-3xl font-bold text-stone-950">Could not load report</h1>
+        <p className="mt-3 leading-7 text-stone-600">
+          {getFriendlyApiErrorMessage(error, 'Complete the interview and generate a report to see feedback.')}
+        </p>
+        <Link
+          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
+          href={`/interviews/${id}`}
+        >
+          Back to interview
+        </Link>
+      </section>
+    </main>
+  );
+}
+
+function ReportLoadedState({ id, report }: { id: string; report: InterviewReportResponse }) {
   return (
     <main className="min-h-screen bg-stone-100 px-5 py-10 text-stone-950">
       <section className="mx-auto w-full max-w-4xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">

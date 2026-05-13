@@ -25,6 +25,10 @@ export const AuthResponseSchema = z.object({
   user: AuthUserSchema
 });
 
+export const CurrentUserResponseSchema = z.object({
+  user: AuthUserSchema
+});
+
 export const CreateInterviewSchema = z.object({
   role: z.string().min(2).max(80),
   level: InterviewLevelSchema,
@@ -100,6 +104,7 @@ export type AuthUser = z.infer<typeof AuthUserSchema>;
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
+export type CurrentUserResponse = z.infer<typeof CurrentUserResponseSchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
 export type CreateInterviewResponse = z.infer<typeof CreateInterviewResponseSchema>;
 export type SubmitAnswerInput = z.infer<typeof SubmitAnswerSchema>;

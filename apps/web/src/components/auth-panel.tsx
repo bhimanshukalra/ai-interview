@@ -17,11 +17,16 @@ type AuthPanelProps = {
   children: React.ReactNode;
 };
 
+type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0];
+
 const initialForm = {
   name: "",
   email: "",
   password: "",
 };
+
+const inputClass =
+  "min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15";
 
 export function AuthPanel({ children }: AuthPanelProps) {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -66,7 +71,7 @@ export function AuthPanel({ children }: AuthPanelProps) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormSubmitEvent) {
     event.preventDefault();
     setError(null);
 
@@ -102,9 +107,6 @@ export function AuthPanel({ children }: AuthPanelProps) {
     setApiAuthorizationToken(null);
     setUser(null);
   }
-
-  const inputClass =
-    "min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15";
 
   if (isCheckingSession) {
     return (

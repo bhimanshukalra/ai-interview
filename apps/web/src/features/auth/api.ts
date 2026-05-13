@@ -1,17 +1,12 @@
 import {
   AuthResponseSchema,
-  AuthUserSchema,
+  CurrentUserResponseSchema,
   type AuthResponse,
   type AuthUser,
   type LoginInput,
   type RegisterInput
 } from '@ai-interview/shared';
-import { z } from 'zod';
 import { apiRequest } from '@/lib/api/client';
-
-const MeResponseSchema = z.object({
-  user: AuthUserSchema
-});
 
 export async function register(input: RegisterInput): Promise<AuthResponse> {
   return apiRequest(
@@ -41,7 +36,7 @@ export async function getCurrentUser(): Promise<AuthUser> {
       url: '/auth/me',
       method: 'GET'
     },
-    MeResponseSchema
+    CurrentUserResponseSchema
   );
 
   return response.user;
