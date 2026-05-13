@@ -26,6 +26,16 @@ Required Vercel environment variables:
 
 - `NEXT_PUBLIC_API_URL` - deployed API URL, for example `https://api.example.workers.dev`
 
+### Cloudflare Workers (`apps/api`)
+
+The API is configured through `apps/api/wrangler.jsonc` and deploys with:
+
+```bash
+pnpm --filter api deploy
+```
+
+Set production secrets with `wrangler secret put` from `apps/api` before deploying.
+
 ## TODO
 
 - [x] Migrate frontend API calls from `fetch` to Axios.
@@ -46,7 +56,7 @@ Required Vercel environment variables:
 - [x] Add a stricter scoring rubric.
 - [x] Make report feedback more useful.
 - [x] Configure Vercel deployment for `apps/web`.
-- [ ] Configure Cloudflare Workers deployment for `apps/api`.
+- [x] Configure Cloudflare Workers deployment for `apps/api`.
 - [ ] Configure Neon environment variables.
 - [ ] Configure CORS for the deployed frontend URL.
 - [ ] Configure production `AI_*` environment variables.

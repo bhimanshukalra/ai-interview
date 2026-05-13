@@ -2,5 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ai-interview-api",
   "main": "src/routes.ts",
-  "compatibility_date": "2026-05-11"
+  "compatibility_date": "2026-05-11",
+  "workers_dev": true,
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true
+  }
 }
