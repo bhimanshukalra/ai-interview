@@ -54,7 +54,11 @@ interviewRoutes.post('/:id/answers', async (c) => {
 });
 
 interviewRoutes.post('/:id/evaluate', async (c) => {
-  const report = await evaluateInterview(c.req.param('id'), createDb(c.env.DATABASE_URL));
+  const report = await evaluateInterview(c.req.param('id'), createDb(c.env.DATABASE_URL), {
+    provider: c.env.AI_PROVIDER,
+    apiKey: c.env.AI_API_KEY,
+    model: c.env.AI_MODEL
+  });
 
   if (!report) {
     return c.json({ message: 'Interview not found' }, 404);

@@ -6,9 +6,11 @@ import type {
   InterviewReportResponse,
   SubmitAnswerInput,
 } from "@ai-interview/shared";
+import type { AnswerEvaluationConfig } from "../ai/answer-evaluator";
 import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "../db/client";
 import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from "../db/schema";
+import { evaluateInterviewAnswer } from "./answer-evaluation";
 import { generateInterviewQuestions } from "./question-generation";
 
 export async function createInterview(
@@ -166,33 +168,10 @@ export async function submitInterviewAnswer(
   };
 }
 
-function createMockEvaluation(answer: InterviewAnswer): Omit<InterviewAnswerEvaluation, "id" | "interviewId" | "questionId" | "answerId"> {
-  const wordCount = answer.answer.trim().split(/\s+/).filter(Boolean).length;
-  const score = Math.max(3, Math.min(10, Math.round(wordCount / 12) + 3));
-
-  return {
-    score,
-    summary:
-      score >= 8
-        ? "Strong answer with enough detail to evaluate the candidate's thinking."
-        : score >= 6
-          ? "Reasonable answer, but it would benefit from more specific examples and tradeoffs."
-          : "The answer is too brief to show clear understanding.",
-    strengths:
-      score >= 7
-        ? ["Communicates the core idea", "Includes enough detail to discuss further"]
-        : ["Provides a starting point for discussion"],
-    weaknesses:
-      score >= 8
-        ? ["Could still mention edge cases or tradeoffs"]
-        : ["Needs more concrete examples", "Needs clearer reasoning"],
-    followUpQuestion: "Can you give a concrete example from a real project or implementation?"
-  };
-}
-
 export async function evaluateInterview(
   interviewId: string,
   db: Database,
+  answerEvaluation: AnswerEvaluationConfig = {},
 ): Promise<InterviewReportResponse | null> {
   const interview = await getInterview(interviewId, db);
 
@@ -203,7 +182,7 @@ export async function evaluateInterview(
   const answers = await listInterviewAnswers(interviewId, db);
 
   for (const answer of answers) {
-    const evaluation = createMockEvaluation(answer);
+    const evaluation = await evaluateInterviewAnswer(answer, interview, answerEvaluation);
 
     await db
       .insert(answerEvaluations)

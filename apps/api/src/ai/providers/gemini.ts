@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { CreateInterviewInput, InterviewQuestion } from '@ai-interview/shared';
 import type { QuestionGenerator } from '../question-generator';
+import { generateGeminiJson } from './gemini-client';
 
 type GeminiQuestionGeneratorOptions = {
   apiKey: string;
@@ -19,20 +20,6 @@ const GeneratedQuestionSchema = z.object({
 
 const GeneratedQuestionsSchema = z.object({
   questions: z.array(GeneratedQuestionSchema)
-});
-
-const GeminiResponseSchema = z.object({
-  candidates: z.array(
-    z.object({
-      content: z.object({
-        parts: z.array(
-          z.object({
-            text: z.string()
-          })
-        )
-      })
-    })
-  )
 });
 
 function buildPrompt(input: CreateInterviewInput) {
@@ -76,59 +63,33 @@ function buildResponseSchema() {
   };
 }
 
+async function generateQuestions(
+  input: CreateInterviewInput,
+  options: GeminiQuestionGeneratorOptions
+): Promise<InterviewQuestion[]> {
+  const generated = GeneratedQuestionsSchema.parse(
+    await generateGeminiJson({
+      apiKey: options.apiKey,
+      model: options.model,
+      prompt: buildPrompt(input),
+      responseJsonSchema: buildResponseSchema(),
+      systemInstruction:
+        'You are an expert technical interviewer. Return only structured JSON that matches the provided schema.'
+    })
+  );
+
+  return generated.questions.slice(0, input.questionCount).map((question) => ({
+    id: crypto.randomUUID(),
+    title: question.title,
+    question: question.question,
+    difficulty: input.level,
+    type: input.type,
+    rubric: question.rubric
+  } satisfies InterviewQuestion));
+}
+
 export function createGeminiQuestionGenerator(options: GeminiQuestionGeneratorOptions): QuestionGenerator {
   return {
-    async generateQuestions(input) {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:generateContent`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': options.apiKey
-          },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [
-                {
-                  text: 'You are an expert technical interviewer. Return only structured JSON that matches the provided schema.'
-                }
-              ]
-            },
-            contents: [
-              {
-                parts: [{ text: buildPrompt(input) }]
-              }
-            ],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseJsonSchema: buildResponseSchema()
-            }
-          })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Question generation failed with status ${response.status}`);
-      }
-
-      const payload = GeminiResponseSchema.parse(await response.json());
-      const text = payload.candidates[0]?.content.parts[0]?.text;
-
-      if (!text) {
-        throw new Error('Question generation response did not include generated text');
-      }
-
-      const generated = GeneratedQuestionsSchema.parse(JSON.parse(text));
-
-      return generated.questions.slice(0, input.questionCount).map((question) => ({
-        id: crypto.randomUUID(),
-        title: question.title,
-        question: question.question,
-        difficulty: input.level,
-        type: input.type,
-        rubric: question.rubric
-      } satisfies InterviewQuestion));
-    }
+    generateQuestions: (input) => generateQuestions(input, options)
   };
 }
