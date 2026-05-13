@@ -1,7 +1,14 @@
 import { Hono } from 'hono';
 import { verify } from 'hono/jwt';
 import type { Context, Next } from 'hono';
-import { CreateInterviewSchema, SubmitAnswerSchema } from '@ai-interview/shared';
+import {
+  CreateInterviewResponseSchema,
+  CreateInterviewSchema,
+  InterviewAnswerSchema,
+  InterviewAnswersResponseSchema,
+  InterviewReportResponseSchema,
+  SubmitAnswerSchema
+} from '@ai-interview/shared';
 import { createDb } from '../db/client';
 import type { Env } from '../env';
 import {
@@ -67,7 +74,7 @@ async function createInterviewHandler(c: Context<Env>): Promise<Response> {
     fallbackToMock: c.env.AI_FALLBACK_TO_MOCK === 'true'
   });
 
-  return c.json(interview, 201);
+  return c.json(CreateInterviewResponseSchema.parse(interview), 201);
 }
 
 async function getInterviewHandler(c: Context<Env>): Promise<Response> {
@@ -77,7 +84,7 @@ async function getInterviewHandler(c: Context<Env>): Promise<Response> {
     return c.json({ message: 'Interview not found' }, 404);
   }
 
-  return c.json(interview);
+  return c.json(CreateInterviewResponseSchema.parse(interview));
 }
 
 async function listInterviewAnswersHandler(c: Context<Env>): Promise<Response> {
@@ -87,7 +94,7 @@ async function listInterviewAnswersHandler(c: Context<Env>): Promise<Response> {
     return c.json({ message: 'Interview not found' }, 404);
   }
 
-  return c.json({ answers });
+  return c.json(InterviewAnswersResponseSchema.parse({ answers }));
 }
 
 async function submitInterviewAnswerHandler(c: Context<Env>): Promise<Response> {
@@ -99,7 +106,7 @@ async function submitInterviewAnswerHandler(c: Context<Env>): Promise<Response> 
     return c.json({ message: 'Question not found for interview' }, 404);
   }
 
-  return c.json(answer, 201);
+  return c.json(InterviewAnswerSchema.parse(answer), 201);
 }
 
 async function evaluateInterviewHandler(c: Context<Env>): Promise<Response> {
@@ -119,7 +126,7 @@ async function evaluateInterviewHandler(c: Context<Env>): Promise<Response> {
       return c.json({ message: 'Interview not found' }, 404);
     }
 
-    return c.json(report);
+    return c.json(InterviewReportResponseSchema.parse(report));
   } catch (error) {
     if (error instanceof InterviewNotReadyError) {
       return c.json(
@@ -143,7 +150,7 @@ async function getInterviewReportHandler(c: Context<Env>): Promise<Response> {
     return c.json({ message: 'Interview not found' }, 404);
   }
 
-  return c.json(report);
+  return c.json(InterviewReportResponseSchema.parse(report));
 }
 
 interviewRoutes.use('*', requireInterviewAuth);

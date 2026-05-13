@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { sign, verify } from 'hono/jwt';
 import type { Context } from 'hono';
 import { eq } from 'drizzle-orm';
-import { AuthUserSchema, CurrentUserResponseSchema, LoginSchema, RegisterSchema } from '@ai-interview/shared';
+import { AuthResponseSchema, CurrentUserResponseSchema, LoginSchema, RegisterSchema } from '@ai-interview/shared';
 import { createDb } from '../db/client';
 import { users } from '../db/schema';
 import type { Env } from '../env';
@@ -67,10 +67,10 @@ async function registerUser(c: Context<Env>): Promise<Response> {
 
   await db.insert(users).values(user);
 
-  return c.json({
+  return c.json(AuthResponseSchema.parse({
     token: await issueToken(user, config.jwtSecret),
-    user: AuthUserSchema.parse(user)
-  });
+    user
+  }));
 }
 
 async function loginUser(c: Context<Env>): Promise<Response> {
@@ -88,10 +88,10 @@ async function loginUser(c: Context<Env>): Promise<Response> {
     return c.json({ message: 'Invalid email or password.' }, 401);
   }
 
-  return c.json({
+  return c.json(AuthResponseSchema.parse({
     token: await issueToken(user, config.jwtSecret),
-    user: AuthUserSchema.parse(user)
-  });
+    user
+  }));
 }
 
 async function getCurrentUser(c: Context<Env>): Promise<Response> {
