@@ -1,11 +1,13 @@
 import {
   InterviewAnswerSchema,
   InterviewAnswersResponseSchema,
+  InterviewReportResponseSchema,
   CreateInterviewResponseSchema,
   type CreateInterviewInput,
   type CreateInterviewResponse,
   type InterviewAnswer,
   type InterviewAnswersResponse,
+  type InterviewReportResponse,
   type SubmitAnswerInput
 } from '@ai-interview/shared';
 import { createApiError } from '@/lib/api/errors';
@@ -64,4 +66,26 @@ export async function submitInterviewAnswer(
   }
 
   return InterviewAnswerSchema.parse(await response.json());
+}
+
+export async function evaluateInterview(interviewId: string): Promise<InterviewReportResponse> {
+  const response = await fetch(`${getApiBaseUrl()}/interviews/${interviewId}/evaluate`, {
+    method: 'POST'
+  });
+
+  if (!response.ok) {
+    throw await createApiError(response);
+  }
+
+  return InterviewReportResponseSchema.parse(await response.json());
+}
+
+export async function getInterviewReport(interviewId: string): Promise<InterviewReportResponse> {
+  const response = await fetch(`${getApiBaseUrl()}/interviews/${interviewId}/report`);
+
+  if (!response.ok) {
+    throw await createApiError(response);
+  }
+
+  return InterviewReportResponseSchema.parse(await response.json());
 }
