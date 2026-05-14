@@ -6,10 +6,9 @@ import type {
   InterviewQuestion,
   InterviewReportResponse,
   InterviewSummary,
-  InterviewSummaryStatus,
   SubmitAnswerInput,
 } from '@ai-interview/shared';
-import { InterviewLevelSchema, InterviewTypeSchema } from '@ai-interview/shared';
+import { getInterviewSummaryStatus, InterviewLevelSchema, InterviewTypeSchema } from '@ai-interview/shared';
 import type { AnswerEvaluationConfig } from '../ai/answer-evaluator';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
@@ -67,26 +66,6 @@ function calculateSummaryScore(scores: number[]): number | null {
   const totalScore = scores.reduce((total, score) => total + score, 0);
 
   return Number((totalScore / scores.length).toFixed(1));
-}
-
-function getInterviewSummaryStatus(
-  answeredCount: number,
-  evaluatedCount: number,
-  questionCount: number,
-): InterviewSummaryStatus {
-  if (evaluatedCount >= questionCount) {
-    return 'report-ready';
-  }
-
-  if (answeredCount >= questionCount) {
-    return 'ready-for-report';
-  }
-
-  if (answeredCount > 0) {
-    return 'in-progress';
-  }
-
-  return 'not-started';
 }
 
 function mapInterviewSummary(

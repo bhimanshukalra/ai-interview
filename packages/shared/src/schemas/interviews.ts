@@ -41,6 +41,26 @@ export const InterviewSummaryStatusSchema = z.enum([
   'report-ready'
 ]);
 
+export function getInterviewSummaryStatus(
+  answeredCount: number,
+  evaluatedCount: number,
+  questionCount: number
+): z.infer<typeof InterviewSummaryStatusSchema> {
+  if (evaluatedCount >= questionCount) {
+    return 'report-ready';
+  }
+
+  if (answeredCount >= questionCount) {
+    return 'ready-for-report';
+  }
+
+  if (answeredCount > 0) {
+    return 'in-progress';
+  }
+
+  return 'not-started';
+}
+
 // Compact history view of an interview. Count, score, and status fields are
 // derived from submitted answers and completed evaluations, not stored user input.
 export const InterviewSummarySchema = z.object({
