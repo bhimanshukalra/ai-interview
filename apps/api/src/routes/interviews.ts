@@ -7,6 +7,7 @@ import {
   InterviewAnswerSchema,
   InterviewAnswersResponseSchema,
   InterviewReportResponseSchema,
+  ListInterviewsResponseSchema,
   SubmitAnswerSchema
 } from '@ai-interview/shared';
 import { createDb } from '../db/client';
@@ -18,6 +19,7 @@ import {
   getInterviewReport,
   InterviewNotReadyError,
   listInterviewAnswers,
+  listInterviews,
   submitInterviewAnswer
 } from '../services/interviews';
 
@@ -78,6 +80,12 @@ async function createInterviewHandler(c: Context<Env>): Promise<Response> {
   });
 
   return c.json(CreateInterviewResponseSchema.parse(interview), 201);
+}
+
+async function listInterviewsHandler(c: Context<Env>): Promise<Response> {
+  const interviews = await listInterviews(c.get('userId'), createDb(c.env.DATABASE_URL));
+
+  return c.json(ListInterviewsResponseSchema.parse({ interviews }));
 }
 
 async function getInterviewHandler(c: Context<Env>): Promise<Response> {
@@ -158,6 +166,7 @@ async function getInterviewReportHandler(c: Context<Env>): Promise<Response> {
 
 interviewRoutes.use('*', requireInterviewAuth);
 interviewRoutes.post('/', createInterviewHandler);
+interviewRoutes.get('/', listInterviewsHandler);
 interviewRoutes.get('/:id', getInterviewHandler);
 interviewRoutes.get('/:id/answers', listInterviewAnswersHandler);
 interviewRoutes.post('/:id/answers', submitInterviewAnswerHandler);

@@ -7,6 +7,7 @@ import { interviewQueryKeys } from './query-keys';
 
 function handleEvaluateSuccess(queryClient: QueryClient, report: InterviewReportResponse): void {
   queryClient.setQueryData(interviewQueryKeys.report(report.interviewId), report);
+  void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.list });
 }
 
 export function useEvaluateInterview(): UseMutationResult<InterviewReportResponse, Error, string> {

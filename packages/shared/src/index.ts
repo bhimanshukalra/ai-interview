@@ -57,6 +57,31 @@ export const CreateInterviewResponseSchema = z.object({
   questions: z.array(InterviewQuestionSchema)
 });
 
+export const InterviewSummaryStatusSchema = z.enum([
+  'not-started',
+  'in-progress',
+  'ready-for-report',
+  'report-ready'
+]);
+
+export const InterviewSummarySchema = z.object({
+  id: z.string(),
+  role: z.string(),
+  level: InterviewLevelSchema,
+  type: InterviewTypeSchema,
+  topic: z.string().optional(),
+  questionCount: z.number().int().min(0),
+  answeredCount: z.number().int().min(0),
+  evaluatedCount: z.number().int().min(0),
+  overallScore: z.number().min(0).max(10).nullable(),
+  status: InterviewSummaryStatusSchema,
+  createdAt: z.string()
+});
+
+export const ListInterviewsResponseSchema = z.object({
+  interviews: z.array(InterviewSummarySchema)
+});
+
 export const SubmitAnswerSchema = z.object({
   questionId: z.string().min(1),
   answer: z.string().min(1).max(8000)
@@ -107,6 +132,9 @@ export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 export type CurrentUserResponse = z.infer<typeof CurrentUserResponseSchema>;
 export type InterviewQuestion = z.infer<typeof InterviewQuestionSchema>;
 export type CreateInterviewResponse = z.infer<typeof CreateInterviewResponseSchema>;
+export type InterviewSummaryStatus = z.infer<typeof InterviewSummaryStatusSchema>;
+export type InterviewSummary = z.infer<typeof InterviewSummarySchema>;
+export type ListInterviewsResponse = z.infer<typeof ListInterviewsResponseSchema>;
 export type SubmitAnswerInput = z.infer<typeof SubmitAnswerSchema>;
 export type InterviewAnswer = z.infer<typeof InterviewAnswerSchema>;
 export type InterviewAnswersResponse = z.infer<typeof InterviewAnswersResponseSchema>;

@@ -5,11 +5,13 @@ import type {
   InterviewAnswerEvaluation,
   InterviewQuestion,
   InterviewReportResponse,
+  InterviewSummary,
+  InterviewSummaryStatus,
   SubmitAnswerInput,
 } from '@ai-interview/shared';
 import { InterviewLevelSchema, InterviewTypeSchema } from '@ai-interview/shared';
 import type { AnswerEvaluationConfig } from '../ai/answer-evaluator';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from '../db/schema';
 import { evaluateInterviewAnswer } from './answer-evaluation';
@@ -17,6 +19,11 @@ import { generateInterviewQuestions } from './question-generation';
 
 type AnswerEvaluationRow = typeof answerEvaluations.$inferSelect;
 type IndexedInterviewQuestion = InterviewQuestion & { index: number };
+type InterviewRow = typeof interviews.$inferSelect;
+
+function toIsoDateString(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
 
 function mapInterviewQuestion(question: typeof interviewQuestions.$inferSelect): InterviewQuestion {
   return {
@@ -50,6 +57,56 @@ function calculateOverallScore(evaluations: InterviewAnswerEvaluation[]): number
   const totalScore = evaluations.reduce((total, evaluation) => total + evaluation.score, 0);
 
   return Number((totalScore / evaluations.length).toFixed(1));
+}
+
+function calculateSummaryScore(scores: number[]): number | null {
+  if (scores.length === 0) {
+    return null;
+  }
+
+  const totalScore = scores.reduce((total, score) => total + score, 0);
+
+  return Number((totalScore / scores.length).toFixed(1));
+}
+
+function getInterviewSummaryStatus(
+  answeredCount: number,
+  evaluatedCount: number,
+  questionCount: number,
+): InterviewSummaryStatus {
+  if (evaluatedCount >= questionCount) {
+    return 'report-ready';
+  }
+
+  if (answeredCount >= questionCount) {
+    return 'ready-for-report';
+  }
+
+  if (answeredCount > 0) {
+    return 'in-progress';
+  }
+
+  return 'not-started';
+}
+
+function mapInterviewSummary(
+  interview: InterviewRow,
+  answeredQuestionIds: Set<string>,
+  evaluationScores: number[],
+): InterviewSummary {
+  return {
+    id: interview.id,
+    role: interview.role,
+    level: InterviewLevelSchema.parse(interview.level),
+    type: InterviewTypeSchema.parse(interview.type),
+    topic: interview.topic ?? undefined,
+    questionCount: interview.questionCount,
+    answeredCount: answeredQuestionIds.size,
+    evaluatedCount: evaluationScores.length,
+    overallScore: calculateSummaryScore(evaluationScores),
+    status: getInterviewSummaryStatus(answeredQuestionIds.size, evaluationScores.length, interview.questionCount),
+    createdAt: toIsoDateString(interview.createdAt),
+  };
 }
 
 function mapEvaluationsToReportItems(
@@ -185,6 +242,61 @@ export async function getInterview(
     },
     questions: questions.map(mapInterviewQuestion),
   };
+}
+
+export async function listInterviews(userId: string, db: Database): Promise<InterviewSummary[]> {
+  const userInterviews = await db
+    .select()
+    .from(interviews)
+    .where(eq(interviews.userId, userId))
+    .orderBy(desc(interviews.createdAt));
+
+  if (userInterviews.length === 0) {
+    return [];
+  }
+
+  const interviewIds = userInterviews.map((interview) => interview.id);
+  const answers = await db
+    .select({
+      interviewId: interviewAnswers.interviewId,
+      questionId: interviewAnswers.questionId,
+      answer: interviewAnswers.answer,
+    })
+    .from(interviewAnswers)
+    .where(inArray(interviewAnswers.interviewId, interviewIds));
+  const evaluations = await db
+    .select({
+      interviewId: answerEvaluations.interviewId,
+      score: answerEvaluations.score,
+    })
+    .from(answerEvaluations)
+    .where(inArray(answerEvaluations.interviewId, interviewIds));
+  const answeredQuestionIdsByInterview = new Map<string, Set<string>>();
+  const evaluationScoresByInterview = new Map<string, number[]>();
+
+  for (const answer of answers) {
+    if (answer.answer.trim().length === 0) {
+      continue;
+    }
+
+    const answeredQuestionIds = answeredQuestionIdsByInterview.get(answer.interviewId) ?? new Set<string>();
+    answeredQuestionIds.add(answer.questionId);
+    answeredQuestionIdsByInterview.set(answer.interviewId, answeredQuestionIds);
+  }
+
+  for (const evaluation of evaluations) {
+    const scores = evaluationScoresByInterview.get(evaluation.interviewId) ?? [];
+    scores.push(evaluation.score);
+    evaluationScoresByInterview.set(evaluation.interviewId, scores);
+  }
+
+  return userInterviews.map((interview) =>
+    mapInterviewSummary(
+      interview,
+      answeredQuestionIdsByInterview.get(interview.id) ?? new Set<string>(),
+      evaluationScoresByInterview.get(interview.id) ?? [],
+    ),
+  );
 }
 
 export async function listInterviewAnswers(

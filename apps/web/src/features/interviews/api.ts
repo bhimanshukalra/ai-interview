@@ -2,12 +2,14 @@ import {
   InterviewAnswerSchema,
   InterviewAnswersResponseSchema,
   InterviewReportResponseSchema,
+  ListInterviewsResponseSchema,
   CreateInterviewResponseSchema,
   type CreateInterviewInput,
   type CreateInterviewResponse,
   type InterviewAnswer,
   type InterviewAnswersResponse,
   type InterviewReportResponse,
+  type ListInterviewsResponse,
   type SubmitAnswerInput
 } from '@ai-interview/shared';
 import { apiRequest } from '@/lib/api/client';
@@ -30,6 +32,16 @@ export async function getInterview(id: string): Promise<CreateInterviewResponse>
       method: 'GET'
     },
     CreateInterviewResponseSchema
+  );
+}
+
+export async function listInterviews(): Promise<ListInterviewsResponse> {
+  return apiRequest(
+    {
+      url: '/interviews',
+      method: 'GET'
+    },
+    ListInterviewsResponseSchema
   );
 }
 

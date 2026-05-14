@@ -15,6 +15,7 @@ function submitInterviewAnswerMutation({ interviewId, input }: SubmitAnswerVaria
 }
 
 function handleSubmitAnswerSuccess(queryClient: QueryClient, variables: SubmitAnswerVariables): void {
+  void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.list });
   void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.answers(variables.interviewId) });
   void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.report(variables.interviewId) });
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { type UseMutateAsyncFunction, useMutation } from '@tanstack/react-query';
+import { type UseMutateAsyncFunction, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateInterviewInput,
   CreateInterviewResponse,
@@ -20,6 +20,7 @@ type UseCreateInterviewResult = {
 };
 
 export function useCreateInterview(): UseCreateInterviewResult {
+  const queryClient = useQueryClient();
   const mutation = useMutation<
     CreateInterviewResponse,
     Error,
@@ -27,6 +28,9 @@ export function useCreateInterview(): UseCreateInterviewResult {
   >({
     mutationKey: interviewQueryKeys.create,
     mutationFn: createInterview,
+    onSuccess() {
+      void queryClient.invalidateQueries({ queryKey: interviewQueryKeys.list });
+    },
   });
 
   return {

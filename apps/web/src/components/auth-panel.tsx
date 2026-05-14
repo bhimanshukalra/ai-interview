@@ -158,7 +158,7 @@ function AuthCheckingState(): React.ReactElement {
 
 function AuthenticatedState({ children, onLogout, user }: AuthenticatedStateProps): React.ReactElement {
   return (
-    <div className="grid w-full max-w-3xl gap-4">
+    <div className="grid w-full max-w-4xl gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-sm">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-teal-700">Signed in</p>
