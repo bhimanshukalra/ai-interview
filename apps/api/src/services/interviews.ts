@@ -6,14 +6,14 @@ import type {
   InterviewQuestion,
   InterviewReportResponse,
   SubmitAnswerInput,
-} from "@ai-interview/shared";
-import { InterviewLevelSchema, InterviewTypeSchema } from "@ai-interview/shared";
-import type { AnswerEvaluationConfig } from "../ai/answer-evaluator";
-import { and, asc, eq } from "drizzle-orm";
-import type { Database } from "../db/client";
-import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from "../db/schema";
-import { evaluateInterviewAnswer } from "./answer-evaluation";
-import { generateInterviewQuestions } from "./question-generation";
+} from '@ai-interview/shared';
+import { InterviewLevelSchema, InterviewTypeSchema } from '@ai-interview/shared';
+import type { AnswerEvaluationConfig } from '../ai/answer-evaluator';
+import { and, asc, eq } from 'drizzle-orm';
+import type { Database } from '../db/client';
+import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from '../db/schema';
+import { evaluateInterviewAnswer } from './answer-evaluation';
+import { generateInterviewQuestions } from './question-generation';
 
 type AnswerEvaluationRow = typeof answerEvaluations.$inferSelect;
 type IndexedInterviewQuestion = InterviewQuestion & { index: number };
@@ -95,8 +95,8 @@ export class InterviewNotReadyError extends Error {
     readonly answeredQuestions: number,
     readonly totalQuestions: number,
   ) {
-    super("All questions must be answered before generating a report.");
-    this.name = "InterviewNotReadyError";
+    super('All questions must be answered before generating a report.');
+    this.name = 'InterviewNotReadyError';
   }
 }
 
@@ -105,7 +105,7 @@ export async function createInterview(
   userId: string,
   db: Database,
   questionGeneration: {
-    provider?: "mock" | "gemini";
+    provider?: 'mock' | 'gemini';
     apiKey?: string;
     model?: string;
     fallbackToMock?: boolean;
@@ -113,7 +113,7 @@ export async function createInterview(
 ): Promise<CreateInterviewResponse> {
   const interview: CreateInterviewResponse = {
     id: crypto.randomUUID(),
-    status: "created",
+    status: 'created',
     input,
     questions: await generateInterviewQuestions(input, {
       provider: questionGeneration.provider,
@@ -175,7 +175,7 @@ export async function getInterview(
 
   return {
     id: interview.id,
-    status: "created",
+    status: 'created',
     input: {
       role: interview.role,
       level: InterviewLevelSchema.parse(interview.level),

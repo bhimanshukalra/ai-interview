@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import type React from "react";
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import type React from 'react';
 import {
   CreateInterviewSchema,
   InterviewLevelSchema,
   InterviewTypeSchema,
   type CreateInterviewInput,
   type CreateInterviewResponse,
-} from "@ai-interview/shared";
-import { useCreateInterview } from "@/features/interviews/use-create-interview";
-import { z } from "zod";
+} from '@ai-interview/shared';
+import { useCreateInterview } from '@/features/interviews/use-create-interview';
+import { z } from 'zod';
 
 type FormState = {
   role: string;
-  level: CreateInterviewInput["level"];
-  type: CreateInterviewInput["type"];
+  level: CreateInterviewInput['level'];
+  type: CreateInterviewInput['type'];
   topic: string;
   questionCount: number;
 };
 
-type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<"form">["onSubmit"]>>[0];
+type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0];
 
 type SetupFormFieldsProps = {
   form: FormState;
@@ -39,15 +39,15 @@ type InterviewCreatedStateProps = {
 };
 
 const initialForm: FormState = {
-  role: "Frontend Engineer",
-  level: "junior",
-  type: "technical",
-  topic: "React",
+  role: 'Frontend Engineer',
+  level: 'junior',
+  type: 'technical',
+  topic: 'React',
   questionCount: 5,
 };
 
 function formatIssue(issue: z.ZodIssue) {
-  const field = issue.path.join(".") || "form";
+  const field = issue.path.join('.') || 'form';
   return `${field}: ${issue.message}`;
 }
 
@@ -66,10 +66,10 @@ export function InterviewSetupForm(): React.ReactElement {
     const topic = form.topic.trim();
 
     return [
-      form.role || "Role not set",
+      form.role || 'Role not set',
       form.level,
       form.type,
-      topic || "general",
+      topic || 'general',
       `${form.questionCount} questions`,
     ];
   }, [form]);
@@ -128,17 +128,17 @@ export function InterviewSetupForm(): React.ReactElement {
           disabled={isPending}
           type="submit"
         >
-          {isPending ? "Creating interview..." : "Create interview"}
+          {isPending ? 'Creating interview...' : 'Create interview'}
         </button>
       </form>
     </section>
   );
 }
 
-const fieldClass = "grid gap-2";
-const labelClass = "text-sm font-semibold text-stone-600";
+const fieldClass = 'grid gap-2';
+const labelClass = 'text-sm font-semibold text-stone-600';
 const inputClass =
-  "min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15";
+  'min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-950 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15';
 
 function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps): React.ReactElement {
   return (
@@ -148,7 +148,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
         <input
           className={inputClass}
           value={form.role}
-          onChange={(event) => onUpdateField("role", event.target.value)}
+          onChange={(event) => onUpdateField('role', event.target.value)}
           placeholder="Frontend Engineer"
         />
       </label>
@@ -158,7 +158,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
         <select
           className={inputClass}
           value={form.level}
-          onChange={(event) => onUpdateField("level", InterviewLevelSchema.parse(event.target.value))}
+          onChange={(event) => onUpdateField('level', InterviewLevelSchema.parse(event.target.value))}
         >
           <option value="intern">Intern</option>
           <option value="junior">Junior</option>
@@ -172,7 +172,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
         <select
           className={inputClass}
           value={form.type}
-          onChange={(event) => onUpdateField("type", InterviewTypeSchema.parse(event.target.value))}
+          onChange={(event) => onUpdateField('type', InterviewTypeSchema.parse(event.target.value))}
         >
           <option value="technical">Technical</option>
           <option value="behavioral">Behavioral</option>
@@ -186,7 +186,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
         <input
           className={inputClass}
           value={form.topic}
-          onChange={(event) => onUpdateField("topic", event.target.value)}
+          onChange={(event) => onUpdateField('topic', event.target.value)}
           placeholder="React"
         />
       </label>
@@ -199,7 +199,7 @@ function SetupFormFields({ form, preview, onUpdateField }: SetupFormFieldsProps)
           min={3}
           max={10}
           value={form.questionCount}
-          onChange={(event) => onUpdateField("questionCount", Number(event.target.value))}
+          onChange={(event) => onUpdateField('questionCount', Number(event.target.value))}
         />
       </label>
 

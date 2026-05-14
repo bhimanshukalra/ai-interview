@@ -10,7 +10,7 @@
     "test:gemini": "node scripts/test-gemini-provider.mjs",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "cd ../.. && eslint apps/api"
   },
   "dependencies": {
     "@ai-interview/shared": "workspace:*",

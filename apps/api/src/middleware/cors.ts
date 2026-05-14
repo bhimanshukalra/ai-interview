@@ -10,8 +10,12 @@ function isProduction(c: Context<Env>): boolean {
 
 function getAllowedOrigin(origin: string, c: Context<Env>): string | null {
   const configuredOrigins =
-    c.env.CORS_ORIGIN?.split(',').map((item: string) => item.trim()).filter(Boolean) ?? [];
-  const allowedOrigins = isProduction(c) ? configuredOrigins : [...configuredOrigins, ...localOrigins];
+    c.env.CORS_ORIGIN?.split(',')
+      .map((item: string) => item.trim())
+      .filter(Boolean) ?? [];
+  const allowedOrigins = isProduction(c)
+    ? configuredOrigins
+    : [...configuredOrigins, ...localOrigins];
 
   if (!origin || allowedOrigins.includes(origin)) {
     return origin;
@@ -22,6 +26,6 @@ function getAllowedOrigin(origin: string, c: Context<Env>): string | null {
 
 export function createCorsMiddleware(): MiddlewareHandler<Env> {
   return cors({
-    origin: getAllowedOrigin
+    origin: getAllowedOrigin,
   });
 }

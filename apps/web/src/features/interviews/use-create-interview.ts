@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { type UseMutateAsyncFunction, useMutation } from "@tanstack/react-query";
+import { type UseMutateAsyncFunction, useMutation } from '@tanstack/react-query';
 import type {
   CreateInterviewInput,
   CreateInterviewResponse,
-} from "@ai-interview/shared";
-import { getFriendlyApiErrorMessage } from "@/lib/api/errors";
-import { createInterview } from "./api";
-import { interviewQueryKeys } from "./query-keys";
+} from '@ai-interview/shared';
+import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
+import { createInterview } from './api';
+import { interviewQueryKeys } from './query-keys';
 
 type UseCreateInterviewResult = {
   create: UseMutateAsyncFunction<CreateInterviewResponse, Error, CreateInterviewInput>;
@@ -45,5 +45,5 @@ function getSubmitErrorMessage(error: Error | null): string | null {
     return null;
   }
 
-  return getFriendlyApiErrorMessage(error, "Could not create the interview.");
+  return getFriendlyApiErrorMessage(error, 'Could not create the interview.');
 }

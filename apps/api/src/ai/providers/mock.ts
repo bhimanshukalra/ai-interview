@@ -1,4 +1,4 @@
-import type { CreateInterviewInput, InterviewQuestion } from '@ai-interview/shared';
+import type { InterviewQuestion } from '@ai-interview/shared';
 import type { QuestionGenerator } from '../question-generator';
 
 export function createMockQuestionGenerator(): QuestionGenerator {

@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "cd ../.. && eslint packages/shared"
   },
   "dependencies": {
     "zod": "^3.24.4"
