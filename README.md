@@ -72,15 +72,25 @@ pnpm wrangler secret put DATABASE_URL
 - [x] AI-generated interview questions through mock and Gemini providers.
 - [x] AI answer evaluation with scoring, feedback, strengths, improvements, and follow-up prompts.
 - [x] End-to-end interview flow from setup to answer submission to final report.
-- [ ] Personalize AI question generation using user preferences, expertise level, target role, and focus areas.
-- [ ] Add richer AI evaluation that tracks senior-engineering signals like tradeoffs, debugging depth, systems thinking, and communication clarity.
-- [ ] Add WebRTC video interviews with camera/microphone controls, connection state, and interview-room presence.
-- [ ] Add a collaborative code editor with WebSocket sync for live coding rounds.
-- [ ] Add interview history dashboard with status, score, and quick resume/report actions.
-- [ ] Add adaptive follow-up questions based on previous answers and evaluation gaps.
-- [ ] Add richer report insights with a study plan, seniority signal breakdown, and shareable summary.
-- [ ] Add exportable reports for PDF, markdown, or share links.
-- [ ] Add reviewer/admin views for browsing interviews and reviewing candidate performance.
+- [x] Interview history dashboard with status, score, and quick resume/report actions.
+- [ ] Add a live interview room shell with room identity, participant presence, and connection status.
+- [ ] Add a single-user coding workspace for live coding rounds.
+- [ ] Add WebSocket-backed collaborative code editing with room join/leave, presence, and document sync.
+- [ ] Add reconnect and draft recovery handling for live coding rooms.
+- [ ] Add WebRTC camera/microphone preview with permission, mute, and device-error states.
+- [ ] Add peer-to-peer WebRTC call setup for a two-person interview room.
+- [ ] Add reconnect and recovery handling for live interview rooms.
+
+## MVP TODO
+
+Smallest useful real-time interview experience:
+
+- [ ] Add a participants list for each interview room, using the existing interview id as the room id.
+- [ ] Add a basic room page that shows interview details, current user presence, remote participants, and connection state.
+- [ ] Connect two participants with WebRTC using the room connection for signaling.
+- [ ] Add a basic code editor panel for the interview room.
+- [ ] Sync code editor contents over WebSockets between room participants.
+- [ ] Keep MVP recovery simple: show disconnected/reconnecting states and let users rejoin the room.
 
 ## Engineering TODO
 
