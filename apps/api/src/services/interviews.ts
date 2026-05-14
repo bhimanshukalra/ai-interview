@@ -10,6 +10,7 @@ import type {
 } from '@ai-interview/shared';
 import { getInterviewSummaryStatus, InterviewLevelSchema, InterviewTypeSchema } from '@ai-interview/shared';
 import type { AnswerEvaluationConfig } from '../ai/answer-evaluator';
+import type { QuestionGenerationConfig } from '../ai/question-generator';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
 import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from '../db/schema';
@@ -140,12 +141,7 @@ export async function createInterview(
   input: CreateInterviewInput,
   userId: string,
   db: Database,
-  questionGeneration: {
-    provider?: 'mock' | 'gemini';
-    apiKey?: string;
-    model?: string;
-    fallbackToMock?: boolean;
-  } = {},
+  questionGeneration: QuestionGenerationConfig = {},
 ): Promise<CreateInterviewResponse> {
   const interview: CreateInterviewResponse = {
     id: crypto.randomUUID(),

@@ -14,7 +14,22 @@ const authTokenTtlSeconds = 60 * 60 * 24 * 7;
 const serviceUnavailableMessage = 'This service is not ready right now. Please try again in a few minutes.';
 const signInAgainMessage = 'Please sign in again to continue.';
 
-function getAuthConfig(env: Env['Bindings']) {
+type AuthConfig = {
+  databaseUrl: string;
+  jwtSecret: string;
+};
+
+type AuthConfigError = {
+  error: string;
+};
+
+type TokenUser = {
+  email: string;
+  id: string;
+  name: string;
+};
+
+function getAuthConfig(env: Env['Bindings']): AuthConfig | AuthConfigError {
   if (!env.DATABASE_URL) {
     return { error: serviceUnavailableMessage };
   }
@@ -29,7 +44,7 @@ function getAuthConfig(env: Env['Bindings']) {
   };
 }
 
-async function issueToken(user: { id: string; email: string; name: string }, secret: string) {
+async function issueToken(user: TokenUser, secret: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
   return sign(
