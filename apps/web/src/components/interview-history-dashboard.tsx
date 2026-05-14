@@ -70,7 +70,7 @@ function InterviewHistoryEmptyState(): React.ReactElement {
       <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">History</p>
       <h2 className="text-2xl font-bold text-stone-950">No interviews yet</h2>
       <p className="mt-2 leading-7 text-stone-600">
-        Create your first interview below. It will appear here once the session is ready.
+        Create your first interview to start building your practice history.
       </p>
     </section>
   );
