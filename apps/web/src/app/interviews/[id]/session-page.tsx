@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
 import { InterviewSession } from '@/components/interview-session';
 import { LoadingPanel } from '@/components/loading-panel';
+import { ScreenStatePanel } from '@/components/screen-state-panel';
 import { useInterviewAnswers } from '@/features/interviews/use-interview-answers';
 import { useInterviewSession } from '@/features/interviews/use-interview-session';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
@@ -29,6 +30,10 @@ export function InterviewSessionPage({ id }: InterviewSessionPageProps): React.R
     return <SessionErrorState error={interviewError ?? answersError} />;
   }
 
+  if (interview.questions.length === 0) {
+    return <SessionEmptyState />;
+  }
+
   return <SessionLoadedState interview={interview} savedAnswers={answersResponse?.answers ?? []} />;
 }
 
@@ -43,22 +48,30 @@ function SessionLoadingState(): React.ReactElement {
 function SessionErrorState({ error }: { error: unknown }): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-      <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Session unavailable</p>
-        <h1 className="text-3xl font-bold text-stone-950">Could not load interview</h1>
-        <p className="mt-3 leading-7 text-stone-600">
-          {getFriendlyApiErrorMessage(
-            error,
-            'The interview may not exist yet, or the API may be unavailable.'
-          )}
-        </p>
-        <Link
-          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
-          href="/"
-        >
-          Create interview
-        </Link>
-      </section>
+      <ScreenStatePanel
+        actions={<PrimaryLink href="/">Back to interviews</PrimaryLink>}
+        eyebrow="Session unavailable"
+        message={getFriendlyApiErrorMessage(
+          error,
+          'The interview may not exist yet, or the API may be unavailable.',
+        )}
+        role="alert"
+        title="Could not load interview"
+        tone="danger"
+      />
+    </main>
+  );
+}
+
+function SessionEmptyState(): React.ReactElement {
+  return (
+    <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
+      <ScreenStatePanel
+        actions={<PrimaryLink href="/">Back to interviews</PrimaryLink>}
+        eyebrow="Interview session"
+        message="This interview does not have any questions yet. Create a new interview to start a practice session."
+        title="No questions available"
+      />
     </main>
   );
 }
@@ -74,5 +87,16 @@ function SessionLoadedState({
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
       <InterviewSession interview={interview} savedAnswers={savedAnswers} />
     </main>
+  );
+}
+
+function PrimaryLink({ children, href }: { children: React.ReactNode; href: string }): React.ReactElement {
+  return (
+    <Link
+      className="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
+      href={href}
+    >
+      {children}
+    </Link>
   );
 }

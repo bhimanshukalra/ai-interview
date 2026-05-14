@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { InterviewSummary, InterviewSummaryStatus } from '@ai-interview/shared';
+import { ScreenStatePanel } from '@/components/screen-state-panel';
 import { useInterviewHistory } from '@/features/interviews/use-interview-history';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 
@@ -41,38 +42,31 @@ export function InterviewHistoryDashboard(): React.ReactElement {
 
 function InterviewHistoryLoadingState(): React.ReactElement {
   return (
-    <section className="w-full rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">History</p>
-      <div className="grid gap-3">
-        <div className="h-6 w-44 animate-pulse rounded bg-stone-200" />
-        <div className="h-20 animate-pulse rounded-lg bg-stone-100" />
-        <div className="h-20 animate-pulse rounded-lg bg-stone-100" />
-      </div>
-    </section>
+    <ScreenStatePanel eyebrow="History" lines={3} role="status" size="full" title="Loading interviews" />
   );
 }
 
 function InterviewHistoryErrorState({ error }: { error: unknown }): React.ReactElement {
   return (
-    <section className="w-full rounded-lg border border-red-200 bg-red-50 p-6 shadow-sm sm:p-8" role="alert">
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">History unavailable</p>
-      <h2 className="text-2xl font-bold text-red-950">Could not load interviews</h2>
-      <p className="mt-2 text-sm leading-6 text-red-800">
-        {getFriendlyApiErrorMessage(error, 'Try again before resuming an interview.')}
-      </p>
-    </section>
+    <ScreenStatePanel
+      eyebrow="History unavailable"
+      message={getFriendlyApiErrorMessage(error, 'Try again before resuming an interview.')}
+      role="alert"
+      size="full"
+      title="Could not load interviews"
+      tone="danger"
+    />
   );
 }
 
 function InterviewHistoryEmptyState(): React.ReactElement {
   return (
-    <section className="w-full rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">History</p>
-      <h2 className="text-2xl font-bold text-stone-950">No interviews yet</h2>
-      <p className="mt-2 leading-7 text-stone-600">
-        Create your first interview to start building your practice history.
-      </p>
-    </section>
+    <ScreenStatePanel
+      eyebrow="History"
+      message="Create your first interview to start building your practice history."
+      size="full"
+      title="No interviews yet"
+    />
   );
 }
 

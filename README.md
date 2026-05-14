@@ -100,7 +100,7 @@ Smallest useful real-time interview experience:
 - [x] AI provider integration: support mock and Gemini providers with production-ready prompts and scoring.
 - [x] Deployment setup: configure Vercel, Cloudflare Workers, Neon, production AI settings, and CORS origins.
 - [x] Frontend workflow polish: loading states, progress, report navigation, restart/back actions, and clearer save behavior.
-- [ ] Finish UI state consistency across all user-facing screens: loading, error, empty, and loaded states.
+- [x] Finish UI state consistency across all user-facing screens: loading, error, empty, and loaded states.
 - [ ] Add broader automated coverage for auth, interview ownership, answer submission, report generation, and frontend flows.
 - [ ] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
 - [ ] Improve interview UX: question navigation, draft recovery, report readability, and clearer next actions.

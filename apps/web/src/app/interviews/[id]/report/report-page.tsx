@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { InterviewReportResponse } from '@ai-interview/shared';
 import { LoadingPanel } from '@/components/loading-panel';
+import { ScreenStatePanel } from '@/components/screen-state-panel';
 import { useInterviewReport } from '@/features/interviews/use-interview-report';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 
@@ -21,6 +22,10 @@ export function InterviewReportPage({ id }: InterviewReportPageProps): React.Rea
     return <ReportErrorState id={id} error={error} />;
   }
 
+  if (report.evaluations.length === 0) {
+    return <ReportEmptyState id={id} />;
+  }
+
   return <ReportLoadedState id={id} report={report} />;
 }
 
@@ -35,19 +40,27 @@ function ReportLoadingState(): React.ReactElement {
 function ReportErrorState({ id, error }: { id: string; error: unknown }): React.ReactElement {
   return (
     <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
-      <section className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 text-center shadow-sm sm:p-8">
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Report unavailable</p>
-        <h1 className="text-3xl font-bold text-stone-950">Could not load report</h1>
-        <p className="mt-3 leading-7 text-stone-600">
-          {getFriendlyApiErrorMessage(error, 'Complete the interview and generate a report to see feedback.')}
-        </p>
-        <Link
-          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
-          href={`/interviews/${id}`}
-        >
-          Back to interview
-        </Link>
-      </section>
+      <ScreenStatePanel
+        actions={<PrimaryLink href={`/interviews/${id}`}>Back to interview</PrimaryLink>}
+        eyebrow="Report unavailable"
+        message={getFriendlyApiErrorMessage(error, 'Complete the interview and generate a report to see feedback.')}
+        role="alert"
+        title="Could not load report"
+        tone="danger"
+      />
+    </main>
+  );
+}
+
+function ReportEmptyState({ id }: { id: string }): React.ReactElement {
+  return (
+    <main className="grid min-h-screen place-items-center bg-stone-100 px-5 py-10 text-stone-950">
+      <ScreenStatePanel
+        actions={<PrimaryLink href={`/interviews/${id}`}>Back to interview</PrimaryLink>}
+        eyebrow="Report"
+        message="No evaluations are available yet. Finish the interview and generate the report to see feedback."
+        title="No feedback yet"
+      />
     </main>
   );
 }
@@ -126,5 +139,16 @@ function ReportLoadedState({ id, report }: { id: string; report: InterviewReport
         </div>
       </section>
     </main>
+  );
+}
+
+function PrimaryLink({ children, href }: { children: React.ReactNode; href: string }): React.ReactElement {
+  return (
+    <Link
+      className="inline-flex min-h-11 items-center justify-center rounded-lg bg-teal-700 px-4 py-2 font-bold text-white transition hover:bg-teal-800"
+      href={href}
+    >
+      {children}
+    </Link>
   );
 }
