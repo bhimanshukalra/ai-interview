@@ -41,10 +41,10 @@ Required Cloudflare secrets:
 - `DATABASE_URL` - Neon pooled PostgreSQL connection string with SSL enabled
 - `JWT_SECRET` - long random value used to sign auth tokens
 - `AI_API_KEY` - Gemini API key for production question generation and evaluation
-- `CORS_ORIGIN` - deployed frontend origin, for example `https://ai-interview.example.com`
+- `CORS_ORIGIN` - comma-separated allowed frontend origins, for example `https://ai-interview.example.com`
 
-Production `AI_PROVIDER=gemini`, `AI_MODEL=gemini-2.5-flash`, and `ENVIRONMENT=production` are set in `wrangler.jsonc`.
-`ENVIRONMENT=production` prevents local development origins from being included in the CORS allowlist.
+Production `AI_PROVIDER=gemini` and `AI_MODEL=gemini-2.5-flash` are set in `wrangler.jsonc`.
+Local development should include local frontend origins in `CORS_ORIGIN`, for example `http://localhost:3000,http://127.0.0.1:3000`.
 Set `AI_FALLBACK_TO_MOCK=true` only in local or non-production environments where mock AI output is acceptable.
 
 ### Neon

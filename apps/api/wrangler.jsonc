@@ -7,8 +7,7 @@
   "upload_source_maps": true,
   "vars": {
     "AI_PROVIDER": "gemini",
-    "AI_MODEL": "gemini-2.5-flash",
-    "ENVIRONMENT": "production"
+    "AI_MODEL": "gemini-2.5-flash"
   },
   "observability": {
     "enabled": true

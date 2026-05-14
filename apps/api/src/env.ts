@@ -7,7 +7,6 @@ export type Env = {
     AI_FALLBACK_TO_MOCK?: string;
     JWT_SECRET?: string;
     CORS_ORIGIN?: string;
-    ENVIRONMENT?: 'development' | 'production' | 'test';
   };
   Variables: {
     userId: string;
