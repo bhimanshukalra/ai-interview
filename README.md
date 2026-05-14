@@ -65,31 +65,34 @@ pnpm db:migrate
 pnpm wrangler secret put DATABASE_URL
 ```
 
-## TODO
+## Feature TODO
 
-- [x] Migrate frontend API calls from `fetch` to Axios.
-- [x] Add authorization with JWT passed in request headers.
-- [x] Validate JWT in Hono middleware.
-- [x] Associate interviews with user id.
-- [x] Prevent loading someone else's interview.
-- [x] Add a real login/auth flow to issue and store user JWTs.
-- [x] Require all questions to be answered before generating a report.
-- [x] Show answered question progress.
-- [x] Disable report generation until the interview is complete.
-- [x] Return clean API errors for invalid Zod input.
-- [x] Handle missing `DATABASE_URL`.
-- [x] Show better frontend messages for API and report failures.
-- [x] Test with `AI_PROVIDER=gemini`.
-- [x] Improve Gemini question prompts.
-- [x] Improve Gemini evaluation prompts.
-- [x] Add a stricter scoring rubric.
-- [x] Make report feedback more useful.
-- [x] Configure Vercel deployment for `apps/web`.
-- [x] Configure Cloudflare Workers deployment for `apps/api`.
-- [x] Configure Neon environment variables.
-- [x] Configure CORS for the deployed frontend URL.
-- [x] Configure production `AI_*` environment variables.
-- [x] Add better loading states.
-- [x] Add "back to setup" and "restart interview" actions.
-- [x] Link the report page back to the interview.
-- [x] Add answer autosave or clearer save behavior.
+- [x] User authentication with register, login, persisted sessions, and current-user loading.
+- [x] Protected interview data with JWT authorization and user-owned interview records.
+- [x] AI-generated interview questions through mock and Gemini providers.
+- [x] AI answer evaluation with scoring, feedback, strengths, improvements, and follow-up prompts.
+- [x] End-to-end interview flow from setup to answer submission to final report.
+- [ ] Personalize AI question generation using user preferences, expertise level, target role, and focus areas.
+- [ ] Add richer AI evaluation that tracks senior-engineering signals like tradeoffs, debugging depth, systems thinking, and communication clarity.
+- [ ] Add WebRTC video interviews with camera/microphone controls, connection state, and interview-room presence.
+- [ ] Add a collaborative code editor with WebSocket sync for live coding rounds.
+- [ ] Add interview history dashboard with status, score, and quick resume/report actions.
+- [ ] Add adaptive follow-up questions based on previous answers and evaluation gaps.
+- [ ] Add richer report insights with a study plan, seniority signal breakdown, and shareable summary.
+- [ ] Add exportable reports for PDF, markdown, or share links.
+- [ ] Add reviewer/admin views for browsing interviews and reviewing candidate performance.
+
+## Engineering TODO
+
+- [x] Core interview flow: create interviews, answer questions, evaluate results, and view reports.
+- [x] Authentication and authorization: issue JWTs, attach users to interviews, and protect interview data.
+- [x] Shared validation and API errors: use shared schemas, clean validation responses, and user-facing frontend messages.
+- [x] AI provider integration: support mock and Gemini providers with production-ready prompts and scoring.
+- [x] Deployment setup: configure Vercel, Cloudflare Workers, Neon, production AI settings, and CORS origins.
+- [x] Frontend workflow polish: loading states, progress, report navigation, restart/back actions, and clearer save behavior.
+- [ ] Finish UI state consistency across all user-facing screens: loading, error, empty, and loaded states.
+- [ ] Add broader automated coverage for auth, interview ownership, answer submission, report generation, and frontend flows.
+- [ ] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
+- [ ] Improve interview UX: question navigation, draft recovery, report readability, and clearer next actions.
+- [ ] Expand code quality cleanup from `AGENTS.md`: route/service boundaries, shared schemas, named functions, and env access patterns.
+- [ ] Prepare production launch checklist: seeded manual test plan, deployment verification, rollback notes, and known limitations.
