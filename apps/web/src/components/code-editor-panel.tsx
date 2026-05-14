@@ -1,6 +1,8 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
+import type { OnChange } from '@monaco-editor/react';
 
 export type CodeEditorLanguage = 'typescript' | 'javascript' | 'python' | 'sql';
 
@@ -15,12 +17,23 @@ type LanguageOption = {
   value: CodeEditorLanguage;
 };
 
+const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
+  ssr: false,
+});
+
 const languageOptions: LanguageOption[] = [
   { label: 'TypeScript', value: 'typescript' },
   { label: 'JavaScript', value: 'javascript' },
   { label: 'Python', value: 'python' },
   { label: 'SQL', value: 'sql' },
 ];
+
+const monacoLanguageByEditorLanguage = {
+  typescript: 'typescript',
+  javascript: 'javascript',
+  python: 'python',
+  sql: 'sql',
+} satisfies Record<CodeEditorLanguage, string>;
 
 const starterCode: Record<CodeEditorLanguage, string> = {
   typescript: `type Candidate = {
@@ -80,6 +93,10 @@ export function CodeEditorPanel({
     updateCode('');
   }
 
+  const handleEditorChange: OnChange = (value) => {
+    updateCode(value ?? '');
+  };
+
   return (
     <section className="w-full rounded-lg border border-stone-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-200 p-4">
@@ -113,22 +130,41 @@ export function CodeEditorPanel({
         </div>
       </div>
 
-      <label className="grid gap-2 p-4">
-        <span className="sr-only">Code</span>
-        <textarea
-          className="min-h-80 w-full resize-y rounded-lg border border-stone-300 bg-stone-950 px-4 py-4 font-mono text-sm leading-6 text-stone-50 outline-none transition placeholder:text-stone-500 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20"
-          spellCheck={false}
-          value={code}
-          onChange={(event) => updateCode(event.target.value)}
-          placeholder="Write code here..."
-        />
-      </label>
+      <div className="p-4">
+        <div className="overflow-hidden rounded-lg border border-stone-300 bg-stone-950">
+          <MonacoEditor
+            height="420px"
+            language={monacoLanguageByEditorLanguage[language]}
+            loading={<EditorLoadingState />}
+            options={{
+              automaticLayout: true,
+              fontSize: 14,
+              minimap: { enabled: false },
+              padding: { top: 16 },
+              scrollBeyondLastLine: false,
+              tabSize: 2,
+              wordWrap: 'on',
+            }}
+            theme="vs-dark"
+            value={code}
+            onChange={handleEditorChange}
+          />
+        </div>
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 px-4 py-3 text-sm text-stone-600">
         <p>{lineCount} lines</p>
         <p>Local draft</p>
       </div>
     </section>
+  );
+}
+
+function EditorLoadingState(): React.ReactElement {
+  return (
+    <div className="flex min-h-80 items-center justify-center bg-stone-950 px-4 py-8 text-sm font-medium text-stone-300">
+      Loading editor...
+    </div>
   );
 }
 
