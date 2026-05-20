@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { InterviewReportResponse } from '@ai-interview/shared';
+import type { CodeEditorLanguage, InterviewReportResponse } from '@ai-interview/shared';
 import { LoadingPanel } from '@/components/loading-panel';
 import { ScreenStatePanel } from '@/components/screen-state-panel';
 import { useInterviewReport } from '@/features/interviews/use-interview-report';
@@ -9,6 +9,13 @@ import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 
 type InterviewReportPageProps = {
   id: string;
+};
+
+const codeLanguageLabels: Record<CodeEditorLanguage, string> = {
+  typescript: 'TypeScript',
+  javascript: 'JavaScript',
+  python: 'Python',
+  sql: 'SQL'
 };
 
 export function InterviewReportPage({ id }: InterviewReportPageProps): React.ReactElement {
@@ -110,6 +117,19 @@ function ReportLoadedState({ id, report }: { id: string; report: InterviewReport
                 <summary className="cursor-pointer font-semibold text-stone-800">Your answer</summary>
                 <p className="mt-2 whitespace-pre-wrap leading-6">{evaluation.answer}</p>
               </details>
+              {evaluation.code ? (
+                <details className="mt-3 rounded-lg border border-stone-200 p-3 text-sm text-stone-700">
+                  <summary className="cursor-pointer font-semibold text-stone-800">Your code</summary>
+                  <div className="mt-3 overflow-hidden rounded-lg border border-stone-800 bg-stone-950">
+                    <div className="border-b border-stone-800 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                      {evaluation.codeLanguage ? codeLanguageLabels[evaluation.codeLanguage] : 'Code'}
+                    </div>
+                    <pre className="overflow-x-auto p-3 text-sm leading-6 text-stone-100">
+                      <code>{evaluation.code}</code>
+                    </pre>
+                  </div>
+                </details>
+              ) : null}
               <p className="mt-3 leading-7 text-stone-700">{evaluation.summary}</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>

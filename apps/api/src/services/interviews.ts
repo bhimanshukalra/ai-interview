@@ -119,6 +119,8 @@ function mapEvaluationsToReportItems(
         question: question?.question ?? 'Question unavailable.',
         answerId: evaluation.answerId,
         answer: answer?.answer ?? '',
+        code: answer?.code,
+        codeLanguage: answer?.codeLanguage,
         score: evaluation.score,
         summary: evaluation.summary,
         strengths: evaluation.strengths,

@@ -127,7 +127,9 @@ export const InterviewAnswerEvaluationSchema = AnswerEvaluationSchema.extend({
   questionTitle: z.string(),
   question: z.string(),
   answerId: z.string(),
-  answer: z.string()
+  answer: z.string(),
+  code: z.string().optional(),
+  codeLanguage: CodeEditorLanguageSchema.optional()
 });
 
 // Full report payload for a completed/evaluated interview, including the
