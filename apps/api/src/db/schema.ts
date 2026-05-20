@@ -58,6 +58,8 @@ export const interviewAnswers = pgTable(
       .notNull()
       .references(() => interviewQuestions.id, { onDelete: 'cascade' }),
     answer: text('answer').notNull(),
+    code: text('code'),
+    codeLanguage: text('code_language'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
   },

@@ -61,7 +61,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries(savedAnswers.map((answer) => [answer.questionId, answer.answer])),
   );
-  const [codeDrafts, setCodeDrafts] = useState<CodeDrafts>({});
+  const [codeDrafts, setCodeDrafts] = useState<CodeDrafts>(() => getInitialCodeDrafts(savedAnswers));
 
   const currentQuestion = interview.questions[currentIndex];
   const isComplete = currentIndex >= interview.questions.length;
@@ -73,6 +73,8 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
 
   async function saveCurrentAnswer(): Promise<boolean> {
     const answer = answers[currentQuestion.id]?.trim();
+    const codeDraft = codeDrafts[currentQuestion.id];
+    const code = codeDraft?.code.trim() ? codeDraft.code : undefined;
 
     if (!answer) {
       setSaveMessage('Write an answer before saving.');
@@ -84,10 +86,12 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
       input: {
         questionId: currentQuestion.id,
         answer,
+        code,
+        codeLanguage: code ? codeDraft?.language : undefined,
       },
     });
 
-    setSaveMessage('Answer saved.');
+    setSaveMessage(code ? 'Answer and code saved.' : 'Answer saved.');
     return true;
   }
 
@@ -162,6 +166,22 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
       onRestartInterview={restartInterview}
       onSaveAnswer={() => void saveCurrentAnswer()}
     />
+  );
+}
+
+function getInitialCodeDrafts(savedAnswers: InterviewAnswer[]): CodeDrafts {
+  return Object.fromEntries(
+    savedAnswers
+      .filter((answer): answer is InterviewAnswer & Required<Pick<InterviewAnswer, 'code' | 'codeLanguage'>> =>
+        Boolean(answer.code?.trim() && answer.codeLanguage)
+      )
+      .map((answer) => [
+        answer.questionId,
+        {
+          code: answer.code,
+          language: answer.codeLanguage,
+        },
+      ]),
   );
 }
 

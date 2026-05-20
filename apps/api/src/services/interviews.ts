@@ -8,7 +8,12 @@ import type {
   InterviewSummary,
   SubmitAnswerInput,
 } from '@ai-interview/shared';
-import { getInterviewSummaryStatus, InterviewLevelSchema, InterviewTypeSchema } from '@ai-interview/shared';
+import {
+  CodeEditorLanguageSchema,
+  getInterviewSummaryStatus,
+  InterviewLevelSchema,
+  InterviewTypeSchema,
+} from '@ai-interview/shared';
 import type { AnswerEvaluationConfig } from '../ai/answer-evaluator';
 import type { QuestionGenerationConfig } from '../ai/question-generator';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
@@ -46,6 +51,8 @@ function mapInterviewAnswer(answer: typeof interviewAnswers.$inferSelect): Inter
     interviewId: answer.interviewId,
     questionId: answer.questionId,
     answer: answer.answer,
+    code: answer.code ?? undefined,
+    codeLanguage: answer.codeLanguage ? CodeEditorLanguageSchema.parse(answer.codeLanguage) : undefined,
   };
 }
 
@@ -323,11 +330,15 @@ export async function submitInterviewAnswer(
       interviewId,
       questionId: input.questionId,
       answer: input.answer,
+      code: input.code?.trim() ? input.code : null,
+      codeLanguage: input.code?.trim() ? input.codeLanguage : null,
     })
     .onConflictDoUpdate({
       target: [interviewAnswers.interviewId, interviewAnswers.questionId],
       set: {
         answer: input.answer,
+        code: input.code?.trim() ? input.code : null,
+        codeLanguage: input.code?.trim() ? input.codeLanguage : null,
         updatedAt: new Date(),
       },
     })

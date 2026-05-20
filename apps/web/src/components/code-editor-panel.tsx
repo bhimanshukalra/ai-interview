@@ -3,8 +3,9 @@
 import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
 import type { OnChange } from '@monaco-editor/react';
+import type { CodeEditorLanguage } from '@ai-interview/shared';
 
-export type CodeEditorLanguage = 'typescript' | 'javascript' | 'python' | 'sql';
+export type { CodeEditorLanguage };
 
 type CodeEditorPanelProps = {
   initialCode?: string;

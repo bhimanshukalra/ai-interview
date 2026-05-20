@@ -43,6 +43,13 @@
       "when": 1778692632794,
       "tag": "0005_spotty_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779289510024,
+      "tag": "0006_young_sunfire",
+      "breakpoints": true
     }
   ]
 }

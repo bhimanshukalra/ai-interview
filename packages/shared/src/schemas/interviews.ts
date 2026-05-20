@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const InterviewLevelSchema = z.enum(['intern', 'junior', 'mid', 'senior']);
 export const InterviewTypeSchema = z.enum(['behavioral', 'technical', 'system-design', 'mixed']);
+export const CodeEditorLanguageSchema = z.enum(['typescript', 'javascript', 'python', 'sql']);
 
 export const CreateInterviewSchema = z.object({
   role: z.string().min(2).max(80),
@@ -83,14 +84,26 @@ export const ListInterviewsResponseSchema = z.object({
 
 export const SubmitAnswerSchema = z.object({
   questionId: z.string().min(1),
-  answer: z.string().min(1).max(8000)
+  answer: z.string().min(1).max(8000),
+  code: z.string().max(20000).optional(),
+  codeLanguage: CodeEditorLanguageSchema.optional()
+}).superRefine((input, context) => {
+  if (input.code?.trim() && !input.codeLanguage) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Code language is required when code is provided.',
+      path: ['codeLanguage']
+    });
+  }
 });
 
 export const InterviewAnswerSchema = z.object({
   id: z.string(),
   interviewId: z.string(),
   questionId: z.string(),
-  answer: z.string()
+  answer: z.string(),
+  code: z.string().optional(),
+  codeLanguage: CodeEditorLanguageSchema.optional()
 });
 
 export const InterviewAnswersResponseSchema = z.object({
@@ -133,6 +146,7 @@ export type CreateInterviewResponse = z.infer<typeof CreateInterviewResponseSche
 export type InterviewSummaryStatus = z.infer<typeof InterviewSummaryStatusSchema>;
 export type InterviewSummary = z.infer<typeof InterviewSummarySchema>;
 export type ListInterviewsResponse = z.infer<typeof ListInterviewsResponseSchema>;
+export type CodeEditorLanguage = z.infer<typeof CodeEditorLanguageSchema>;
 export type SubmitAnswerInput = z.infer<typeof SubmitAnswerSchema>;
 export type InterviewAnswer = z.infer<typeof InterviewAnswerSchema>;
 export type InterviewAnswersResponse = z.infer<typeof InterviewAnswersResponseSchema>;
