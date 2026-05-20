@@ -124,9 +124,12 @@ async function generateGeminiJson({ apiKey, model, prompt, responseJsonSchema, s
   return JSON.parse(text);
 }
 
-function createMockFetch(expectedSchema, responsePayload) {
+function createMockFetch(expectedSchema, responsePayload, validatePrompt = () => {}) {
   return async (url, init) => {
     validateGeminiRequest(url, init, expectedSchema);
+
+    const body = JSON.parse(init.body);
+    validatePrompt(body.contents?.[0]?.parts?.[0]?.text ?? '');
 
     return {
       ok: true,
@@ -174,7 +177,10 @@ async function runEvaluationSmokeTest(fetchImpl) {
     prompt: [
       'Role: Frontend Engineer',
       'Question: How do you avoid unnecessary React re-renders?',
-      'Candidate answer: I memoize expensive work and keep state scoped.'
+      'Candidate answer: I memoize expensive work and keep state scoped.',
+      'Candidate code:',
+      'Language: TypeScript',
+      'const ranked = candidates.toSorted((left, right) => right.score - left.score);'
     ].join('\n'),
     responseJsonSchema: evaluationSchema,
     systemInstruction: 'You are an expert interviewer evaluating a written candidate answer.',
@@ -211,13 +217,21 @@ if (liveTest) {
     })
   );
   await runEvaluationSmokeTest(
-    createMockFetch(evaluationSchema, {
-      score: 8,
-      summary: 'Specific and practical answer with clear examples.',
-      strengths: ['Mentions state scoping', 'Mentions expensive work'],
-      weaknesses: ['Could discuss profiling first'],
-      followUpQuestion: 'How would you prove memoization helped?'
-    })
+    createMockFetch(
+      evaluationSchema,
+      {
+        score: 8,
+        summary: 'Specific and practical answer with clear examples.',
+        strengths: ['Mentions state scoping', 'Includes code context'],
+        weaknesses: ['Could discuss profiling first'],
+        followUpQuestion: 'How would you prove memoization helped?'
+      },
+      (prompt) => {
+        assert(prompt.includes('Candidate code:'), 'Evaluation prompt must include candidate code context.');
+        assert(prompt.includes('TypeScript'), 'Evaluation prompt must include code language.');
+        assert(prompt.includes('toSorted'), 'Evaluation prompt must include candidate code.');
+      }
+    )
   );
   console.log('Gemini mocked smoke test passed. Set AI_GEMINI_LIVE_TEST=1 with AI_API_KEY for a live call.');
 }

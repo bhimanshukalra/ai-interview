@@ -1,8 +1,9 @@
-import type { AnswerEvaluation } from '@ai-interview/shared';
+import type { AnswerEvaluation, InterviewAnswer } from '@ai-interview/shared';
 import type { AnswerEvaluator } from '../answer-evaluator';
 
-function createMockEvaluation(answer: string): AnswerEvaluation {
-  const wordCount = answer.trim().split(/\s+/).filter(Boolean).length;
+function createMockEvaluation(answer: InterviewAnswer): AnswerEvaluation {
+  const wordCount = answer.answer.trim().split(/\s+/).filter(Boolean).length;
+  const hasCode = Boolean(answer.code?.trim());
   const score = Math.max(1, Math.min(8, Math.round(wordCount / 16) + 2));
 
   return {
@@ -15,12 +16,21 @@ function createMockEvaluation(answer: string): AnswerEvaluation {
           : 'The answer is too brief to show clear understanding.',
     strengths:
       score >= 7
-        ? ['Communicates the core idea', 'Includes enough detail to discuss further']
-        : ['Provides a starting point for discussion'],
+        ? [
+          'Communicates the core idea',
+          hasCode ? 'Includes a code example for implementation context' : 'Includes enough detail to discuss further'
+        ]
+        : [
+          'Provides a starting point for discussion',
+          ...(hasCode ? ['Includes code that can be reviewed alongside the explanation'] : [])
+        ],
     weaknesses:
       score >= 8
-        ? ['Could still mention edge cases or tradeoffs']
-        : ['Needs more concrete examples', 'Needs clearer reasoning'],
+        ? [hasCode ? 'Could still discuss code edge cases or tradeoffs' : 'Could still mention edge cases or tradeoffs']
+        : [
+          'Needs more concrete examples',
+          hasCode ? 'Needs clearer explanation of how the code handles edge cases' : 'Needs clearer reasoning'
+        ],
     followUpQuestion: 'Can you give a concrete example from a real project or implementation?'
   };
 }
@@ -28,7 +38,7 @@ function createMockEvaluation(answer: string): AnswerEvaluation {
 export function createMockAnswerEvaluator(): AnswerEvaluator {
   return {
     async evaluateAnswer(input) {
-      return createMockEvaluation(input.answer.answer);
+      return createMockEvaluation(input.answer);
     }
   };
 }

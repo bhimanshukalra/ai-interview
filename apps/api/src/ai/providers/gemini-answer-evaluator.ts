@@ -27,6 +27,22 @@ function buildResponseSchema() {
   };
 }
 
+function buildCandidateCodeSection(input: Parameters<AnswerEvaluator['evaluateAnswer']>[0]): string[] {
+  if (!input.answer.code?.trim()) {
+    return [
+      'Candidate code:',
+      'No code was provided for this answer.'
+    ];
+  }
+
+  return [
+    'Candidate code:',
+    `- Language: ${input.answer.codeLanguage ?? 'unknown'}`,
+    '- Code:',
+    input.answer.code
+  ];
+}
+
 export function createGeminiAnswerEvaluator(options: GeminiAnswerEvaluatorOptions): AnswerEvaluator {
   return {
     async evaluateAnswer(input) {
@@ -53,9 +69,16 @@ export function createGeminiAnswerEvaluator(options: GeminiAnswerEvaluatorOption
         'Candidate answer:',
         input.answer.answer,
         '',
+        ...buildCandidateCodeSection(input),
+        '',
         'Evaluation requirements:',
         '- Score must be an integer from 0 to 10 using the scoring guide below.',
-        '- Judge only the written answer, not the candidate in general.',
+        '- Judge only the submitted answer and code, not the candidate in general.',
+        '- If candidate code is provided, evaluate it as supporting evidence for the written answer.',
+        '- Consider code correctness, edge cases, readability, complexity, and fit to the question.',
+        '- Consider whether the written explanation and code agree with each other.',
+        '- Do not require code for behavioral questions or questions that do not ask for implementation.',
+        '- Do not penalize missing code unless the question clearly expects code.',
         '- Reward concrete examples, accurate reasoning, tradeoff awareness, and role-appropriate depth.',
         '- Penalize vague claims, missing specifics, incorrect concepts, and unsupported assertions.',
         '- Keep the summary concise and actionable.',
