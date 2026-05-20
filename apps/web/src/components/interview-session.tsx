@@ -4,11 +4,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import type { CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
+import { CodeEditorPanel, type CodeEditorLanguage } from '@/components/code-editor-panel';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 import { useEvaluateInterview } from '@/features/interviews/use-evaluate-interview';
+import { shouldShowCodeEditor } from '@/features/interviews/code-editor';
 import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
 
 type AnswerDrafts = Record<string, string>;
+type CodeDrafts = Record<string, CodeDraft>;
+
+type CodeDraft = {
+  code: string;
+  language: CodeEditorLanguage;
+};
 
 type InterviewSessionProps = {
   interview: CreateInterviewResponse;
@@ -29,13 +37,16 @@ type InterviewCompleteStateProps = {
 type InterviewActiveStateProps = {
   answeredCount: number;
   answers: AnswerDrafts;
+  codeDraft: CodeDraft | null;
   currentIndex: number;
   interview: CreateInterviewResponse;
   saveError: unknown;
   saveMessage: string | null;
+  showCodeEditor: boolean;
   isSavingAnswer: boolean;
   onAnswerChange: (questionId: string, answer: string) => void;
   onBack: () => void;
+  onCodeChange: (questionId: string, code: string, language: CodeEditorLanguage) => void;
   onNext: () => void;
   onRestartInterview: () => void;
   onSaveAnswer: () => void;
@@ -50,6 +61,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries(savedAnswers.map((answer) => [answer.questionId, answer.answer])),
   );
+  const [codeDrafts, setCodeDrafts] = useState<CodeDrafts>({});
 
   const currentQuestion = interview.questions[currentIndex];
   const isComplete = currentIndex >= interview.questions.length;
@@ -101,6 +113,16 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     setSaveMessage(null);
   }
 
+  function updateCodeDraft(questionId: string, code: string, language: CodeEditorLanguage): void {
+    setCodeDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [questionId]: {
+        code,
+        language,
+      },
+    }));
+  }
+
   if (isComplete) {
     return (
       <InterviewCompleteState
@@ -120,11 +142,13 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     <InterviewActiveState
       answeredCount={answeredCount}
       answers={answers}
+      codeDraft={codeDrafts[currentQuestion.id] ?? null}
       currentIndex={currentIndex}
       interview={interview}
       isSavingAnswer={submitAnswer.isPending}
       saveError={submitAnswer.error}
       saveMessage={saveMessage}
+      showCodeEditor={shouldShowCodeEditor(interview)}
       onAnswerChange={(questionId, answer) => {
         setSaveMessage('Unsaved changes.');
         setAnswers((currentAnswers) => ({
@@ -133,6 +157,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
         }));
       }}
       onBack={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
+      onCodeChange={updateCodeDraft}
       onNext={() => void goToNextQuestion()}
       onRestartInterview={restartInterview}
       onSaveAnswer={() => void saveCurrentAnswer()}
@@ -207,13 +232,16 @@ function InterviewCompleteState({
 function InterviewActiveState({
   answeredCount,
   answers,
+  codeDraft,
   currentIndex,
   interview,
   isSavingAnswer,
   saveError,
   saveMessage,
+  showCodeEditor,
   onAnswerChange,
   onBack,
+  onCodeChange,
   onNext,
   onRestartInterview,
   onSaveAnswer
@@ -221,7 +249,7 @@ function InterviewActiveState({
   const currentQuestion = interview.questions[currentIndex];
 
   return (
-    <section className="w-full max-w-3xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+    <section className="w-full max-w-5xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-teal-700">Interview session</p>
@@ -264,6 +292,17 @@ function InterviewActiveState({
           placeholder="Write your answer here..."
         />
       </label>
+
+      {showCodeEditor ? (
+        <div className="mt-6">
+          <CodeEditorPanel
+            key={currentQuestion.id}
+            initialCode={codeDraft?.code ?? ''}
+            initialLanguage={codeDraft?.language ?? 'typescript'}
+            onCodeChange={(code, language) => onCodeChange(currentQuestion.id, code, language)}
+          />
+        </div>
+      ) : null}
 
       <div className="mt-5 flex flex-wrap gap-3">
         <Link

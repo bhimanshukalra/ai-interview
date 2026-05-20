@@ -86,10 +86,18 @@ export function CodeEditorPanel({
   }
 
   function useStarterCode(): void {
+    if (code.trim().length > 0 && !window.confirm('Replace current code with starter code?')) {
+      return;
+    }
+
     updateCode(starterCode[language]);
   }
 
   function resetEditor(): void {
+    if (code.trim().length > 0 && !window.confirm('Clear this code draft?')) {
+      return;
+    }
+
     updateCode('');
   }
 
