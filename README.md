@@ -65,7 +65,9 @@ pnpm db:migrate
 pnpm wrangler secret put DATABASE_URL
 ```
 
-## Feature TODO
+## MVP Completion Checklist
+
+Core product capabilities:
 
 - [x] User authentication with register, login, persisted sessions, and current-user loading.
 - [x] Protected interview data with JWT authorization and user-owned interview records.
@@ -73,24 +75,26 @@ pnpm wrangler secret put DATABASE_URL
 - [x] AI answer evaluation with scoring, feedback, strengths, improvements, and follow-up prompts.
 - [x] End-to-end interview flow from setup to answer submission to final report.
 - [x] Interview history dashboard with status, score, and quick resume/report actions.
-- [ ] Add a live interview room shell with room identity, participant presence, and connection status.
-- [ ] Add a single-user coding workspace for live coding rounds.
-- [ ] Add WebSocket-backed collaborative code editing with room join/leave, presence, and document sync.
-- [ ] Add reconnect and draft recovery handling for live coding rooms.
-- [ ] Add WebRTC camera/microphone preview with permission, mute, and device-error states.
-- [ ] Add peer-to-peer WebRTC call setup for a two-person interview room.
-- [ ] Add reconnect and recovery handling for live interview rooms.
+- [x] Code editor for technical-style interviews, saved with answers and shown in reports.
+- [x] Gemini prompt hardening for untrusted user-provided interview, answer, and code content.
 
-## MVP TODO
+Before calling the MVP done:
 
-Smallest useful real-time interview experience:
+- [ ] Run and confirm `pnpm -r typecheck`.
+- [ ] Run and confirm `pnpm --filter web build`.
+- [ ] Manually smoke test register, create interview, answer all questions, generate report, return to dashboard, log out, log back in, resume, and view report.
+- [ ] Confirm deployed web/API environments are configured.
+- [ ] Document known limitations.
 
-- [ ] Add a participants list for each interview room, using the existing interview id as the room id.
-- [ ] Add a basic room page that shows interview details, current user presence, remote participants, and connection state.
-- [ ] Connect two participants with WebRTC using the room connection for signaling.
-- [ ] Add a basic code editor panel for the interview room.
-- [ ] Sync code editor contents over WebSockets between room participants.
-- [ ] Keep MVP recovery simple: show disconnected/reconnecting states and let users rejoin the room.
+## Post-MVP Roadmap
+
+These are larger follow-up areas that show deeper engineering range. They are intentionally limited to substantial systems work, not small product conveniences.
+
+- [ ] Senior-engineering evaluation depth for code and answers, including tradeoffs, edge cases, debugging approach, and systems thinking.
+- [ ] Production operations hardening with smoke checks, structured logging, failure monitoring, and deployment rollback notes.
+- [ ] Collaborative code editor with room presence, WebSocket sync, conflict handling, and reconnect recovery.
+- [ ] WebRTC video interview room with camera/microphone controls, signaling, connection state, and reconnect handling.
+- [ ] Sandboxed code execution with language-specific runners, timeouts, resource limits, and safe result reporting.
 
 ## Engineering TODO
 
@@ -101,8 +105,8 @@ Smallest useful real-time interview experience:
 - [x] Deployment setup: configure Vercel, Cloudflare Workers, Neon, production AI settings, and CORS origins.
 - [x] Frontend workflow polish: loading states, progress, report navigation, restart/back actions, and clearer save behavior.
 - [x] Finish UI state consistency across all user-facing screens: loading, error, empty, and loaded states.
+- [x] Expand code quality cleanup from `AGENTS.md`: route/service boundaries, shared schemas, named functions, and env access patterns.
 - [ ] Add broader automated coverage for auth, interview ownership, answer submission, report generation, and frontend flows.
 - [ ] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
 - [ ] Improve interview UX: question navigation, draft recovery, report readability, and clearer next actions.
-- [ ] Expand code quality cleanup from `AGENTS.md`: route/service boundaries, shared schemas, named functions, and env access patterns.
 - [ ] Prepare production launch checklist: seeded manual test plan, deployment verification, rollback notes, and known limitations.
