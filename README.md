@@ -13,6 +13,7 @@ Text-based AI interview MVP built with Next.js, Hono, and shared TypeScript sche
 ```bash
 pnpm install
 pnpm dev
+pnpm verify:release
 pnpm --filter api test:gemini
 ```
 
@@ -90,8 +91,8 @@ Before calling the MVP done:
 
 These are larger follow-up areas that show deeper engineering range. They are intentionally limited to substantial systems work, not small product conveniences.
 
-- [ ] Senior-engineering evaluation depth for code and answers, including tradeoffs, edge cases, debugging approach, and systems thinking.
-- [ ] Production operations hardening with smoke checks, structured logging, failure monitoring, and deployment rollback notes.
+- [x] Senior-engineering evaluation depth for code and answers, including tradeoffs, edge cases, debugging approach, and systems thinking.
+- [x] Production operations hardening with smoke checks, structured logging, failure monitoring, and deployment rollback notes.
 - [ ] Collaborative code editor with room presence, WebSocket sync, conflict handling, and reconnect recovery.
 - [ ] WebRTC video interview room with camera/microphone controls, signaling, connection state, and reconnect handling.
 - [ ] Sandboxed code execution with language-specific runners, timeouts, resource limits, and safe result reporting.
@@ -107,6 +108,6 @@ These are larger follow-up areas that show deeper engineering range. They are in
 - [x] Finish UI state consistency across all user-facing screens: loading, error, empty, and loaded states.
 - [x] Expand code quality cleanup from `AGENTS.md`: route/service boundaries, shared schemas, named functions, and env access patterns.
 - [ ] Add broader automated coverage for auth, interview ownership, answer submission, report generation, and frontend flows.
-- [ ] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
+- [x] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
 - [ ] Improve interview UX: question navigation, draft recovery, report readability, and clearer next actions.
 - [ ] Prepare production launch checklist: seeded manual test plan, deployment verification, rollback notes, and known limitations.

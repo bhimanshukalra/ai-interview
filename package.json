@@ -8,7 +8,8 @@
     "dev:api": "pnpm --filter api dev",
     "build": "pnpm -r build",
     "lint": "eslint .",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "verify:release": "pnpm -r typecheck && pnpm --filter web build && pnpm --filter api test:gemini"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
