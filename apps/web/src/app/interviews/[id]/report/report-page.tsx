@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { CodeEditorLanguage, InterviewReportResponse } from '@ai-interview/shared';
+import type { CodeEditorLanguage, EvaluationSignalBreakdown, InterviewReportResponse } from '@ai-interview/shared';
 import { LoadingPanel } from '@/components/loading-panel';
 import { ScreenStatePanel } from '@/components/screen-state-panel';
 import { useInterviewReport } from '@/features/interviews/use-interview-report';
@@ -17,6 +17,16 @@ const codeLanguageLabels: Record<CodeEditorLanguage, string> = {
   python: 'Python',
   sql: 'SQL'
 };
+
+const signalLabels: Array<{ key: keyof EvaluationSignalBreakdown; label: string }> = [
+  { key: 'correctness', label: 'Correctness' },
+  { key: 'clarity', label: 'Clarity' },
+  { key: 'codeQuality', label: 'Code quality' },
+  { key: 'tradeoffs', label: 'Tradeoffs' },
+  { key: 'edgeCases', label: 'Edge cases' },
+  { key: 'debugging', label: 'Debugging' },
+  { key: 'systemsThinking', label: 'Systems thinking' }
+];
 
 export function InterviewReportPage({ id }: InterviewReportPageProps): React.ReactElement {
   const { data: report, error, isError, isLoading } = useInterviewReport(id);
@@ -131,6 +141,26 @@ function ReportLoadedState({ id, report }: { id: string; report: InterviewReport
                 </details>
               ) : null}
               <p className="mt-3 leading-7 text-stone-700">{evaluation.summary}</p>
+              <div className="mt-4 rounded-lg border border-stone-200 p-4">
+                <h3 className="text-sm font-bold text-stone-600">Signal breakdown</h3>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {signalLabels.map((signal) => {
+                    const item = evaluation.signalBreakdown[signal.key];
+
+                    return (
+                      <div key={signal.key} className="rounded-lg bg-stone-50 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-bold text-stone-700">{signal.label}</p>
+                          <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-teal-700">
+                            {item.score}/10
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-stone-600">{item.note}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                   <h3 className="text-sm font-bold text-stone-600">Strengths</h3>

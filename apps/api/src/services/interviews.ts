@@ -6,6 +6,7 @@ import type {
   InterviewQuestion,
   InterviewReportResponse,
   InterviewSummary,
+  EvaluationSignalBreakdown,
   SubmitAnswerInput,
 } from '@ai-interview/shared';
 import {
@@ -25,6 +26,20 @@ import { generateInterviewQuestions } from './question-generation';
 type AnswerEvaluationRow = typeof answerEvaluations.$inferSelect;
 type IndexedInterviewQuestion = InterviewQuestion & { index: number };
 type InterviewRow = typeof interviews.$inferSelect;
+
+function createFallbackSignalBreakdown(score: number, summary: string): EvaluationSignalBreakdown {
+  const note = summary || 'No detailed signal note is available for this evaluation.';
+
+  return {
+    correctness: { score, note },
+    clarity: { score, note },
+    codeQuality: { score, note },
+    tradeoffs: { score, note },
+    edgeCases: { score, note },
+    debugging: { score, note },
+    systemsThinking: { score, note },
+  };
+}
 
 function toIsoDateString(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
@@ -123,6 +138,8 @@ function mapEvaluationsToReportItems(
         codeLanguage: answer?.codeLanguage,
         score: evaluation.score,
         summary: evaluation.summary,
+        signalBreakdown:
+          evaluation.signalBreakdown ?? createFallbackSignalBreakdown(evaluation.score, evaluation.summary),
         strengths: evaluation.strengths,
         weaknesses: evaluation.weaknesses,
         followUpQuestion: evaluation.followUpQuestion ?? undefined,
@@ -387,6 +404,7 @@ export async function evaluateInterview(
         answerId: answer.id,
         score: evaluation.score,
         summary: evaluation.summary,
+        signalBreakdown: evaluation.signalBreakdown,
         strengths: evaluation.strengths,
         weaknesses: evaluation.weaknesses,
         followUpQuestion: evaluation.followUpQuestion,
@@ -396,6 +414,7 @@ export async function evaluateInterview(
         set: {
           score: evaluation.score,
           summary: evaluation.summary,
+          signalBreakdown: evaluation.signalBreakdown,
           strengths: evaluation.strengths,
           weaknesses: evaluation.weaknesses,
           followUpQuestion: evaluation.followUpQuestion,

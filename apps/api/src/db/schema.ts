@@ -81,6 +81,15 @@ export const answerEvaluations = pgTable(
       .references(() => interviewAnswers.id, { onDelete: 'cascade' }),
     score: integer('score').notNull(),
     summary: text('summary').notNull(),
+    signalBreakdown: jsonb('signal_breakdown').$type<{
+      correctness: { score: number; note: string };
+      clarity: { score: number; note: string };
+      codeQuality: { score: number; note: string };
+      tradeoffs: { score: number; note: string };
+      edgeCases: { score: number; note: string };
+      debugging: { score: number; note: string };
+      systemsThinking: { score: number; note: string };
+    }>(),
     strengths: jsonb('strengths').$type<string[]>().notNull(),
     weaknesses: jsonb('weaknesses').$type<string[]>().notNull(),
     followUpQuestion: text('follow_up_question'),

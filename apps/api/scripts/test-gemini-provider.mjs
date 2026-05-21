@@ -38,6 +38,27 @@ const evaluationSchema = {
   properties: {
     score: { type: 'integer', minimum: 0, maximum: 10 },
     summary: { type: 'string' },
+    signalBreakdown: {
+      type: 'object',
+      properties: {
+        correctness: createSignalSchema(),
+        clarity: createSignalSchema(),
+        codeQuality: createSignalSchema(),
+        tradeoffs: createSignalSchema(),
+        edgeCases: createSignalSchema(),
+        debugging: createSignalSchema(),
+        systemsThinking: createSignalSchema()
+      },
+      required: [
+        'correctness',
+        'clarity',
+        'codeQuality',
+        'tradeoffs',
+        'edgeCases',
+        'debugging',
+        'systemsThinking'
+      ]
+    },
     strengths: {
       type: 'array',
       items: { type: 'string' }
@@ -48,8 +69,19 @@ const evaluationSchema = {
     },
     followUpQuestion: { type: 'string' }
   },
-  required: ['score', 'summary', 'strengths', 'weaknesses']
+  required: ['score', 'summary', 'signalBreakdown', 'strengths', 'weaknesses']
 };
+
+function createSignalSchema() {
+  return {
+    type: 'object',
+    properties: {
+      score: { type: 'integer', minimum: 0, maximum: 10 },
+      note: { type: 'string' }
+    },
+    required: ['score', 'note']
+  };
+}
 
 function readDevVars() {
   try {
@@ -205,6 +237,8 @@ async function runEvaluationSmokeTest(fetchImpl) {
 
   assert(Number.isInteger(payload.score), 'Evaluation payload must include an integer score.');
   assert(payload.summary, 'Evaluation payload must include a summary.');
+  assert(payload.signalBreakdown?.correctness?.note, 'Evaluation payload must include correctness signal notes.');
+  assert(Number.isInteger(payload.signalBreakdown?.systemsThinking?.score), 'Evaluation payload must include systems thinking score.');
   assert(Array.isArray(payload.strengths), 'Evaluation payload must include strengths.');
   assert(Array.isArray(payload.weaknesses), 'Evaluation payload must include weaknesses.');
 }
@@ -248,6 +282,15 @@ if (liveTest) {
       {
         score: 8,
         summary: 'Specific and practical answer with clear examples.',
+        signalBreakdown: {
+          correctness: { score: 8, note: 'Correctly names state scoping and memoization.' },
+          clarity: { score: 8, note: 'Clear and concise.' },
+          codeQuality: { score: 7, note: 'Code is readable and modern.' },
+          tradeoffs: { score: 6, note: 'Tradeoffs could be deeper.' },
+          edgeCases: { score: 6, note: 'Could discuss stale inputs and profiling.' },
+          debugging: { score: 7, note: 'Mentions approaches that can be verified.' },
+          systemsThinking: { score: 6, note: 'Could connect to app-level performance.' }
+        },
         strengths: ['Mentions state scoping', 'Includes code context'],
         weaknesses: ['Could discuss profiling first'],
         followUpQuestion: 'How would you prove memoization helped?'

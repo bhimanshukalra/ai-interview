@@ -8,11 +8,41 @@ type GeminiAnswerEvaluatorOptions = {
 };
 
 function buildResponseSchema() {
+  const signalSchema = {
+    type: 'object',
+    properties: {
+      score: { type: 'integer', minimum: 0, maximum: 10 },
+      note: { type: 'string' }
+    },
+    required: ['score', 'note']
+  };
+
   return {
     type: 'object',
     properties: {
       score: { type: 'integer', minimum: 0, maximum: 10 },
       summary: { type: 'string' },
+      signalBreakdown: {
+        type: 'object',
+        properties: {
+          correctness: signalSchema,
+          clarity: signalSchema,
+          codeQuality: signalSchema,
+          tradeoffs: signalSchema,
+          edgeCases: signalSchema,
+          debugging: signalSchema,
+          systemsThinking: signalSchema
+        },
+        required: [
+          'correctness',
+          'clarity',
+          'codeQuality',
+          'tradeoffs',
+          'edgeCases',
+          'debugging',
+          'systemsThinking'
+        ]
+      },
       strengths: {
         type: 'array',
         items: { type: 'string' }
@@ -23,7 +53,7 @@ function buildResponseSchema() {
       },
       followUpQuestion: { type: 'string' }
     },
-    required: ['score', 'summary', 'strengths', 'weaknesses']
+    required: ['score', 'summary', 'signalBreakdown', 'strengths', 'weaknesses']
   };
 }
 
@@ -94,6 +124,14 @@ export function createGeminiAnswerEvaluator(options: GeminiAnswerEvaluatorOption
         '- Reward concrete examples, accurate reasoning, tradeoff awareness, and role-appropriate depth.',
         '- Penalize vague claims, missing specifics, incorrect concepts, and unsupported assertions.',
         '- Keep the summary concise and actionable.',
+        '- Include a signalBreakdown object with a 0-10 score and concise note for every required dimension.',
+        '- correctness: whether the answer and code solve the asked problem accurately.',
+        '- clarity: whether the explanation is clear, structured, and easy to follow.',
+        '- codeQuality: whether code is readable, maintainable, idiomatic, and appropriately simple.',
+        '- tradeoffs: whether the answer explains alternatives and why the chosen approach fits.',
+        '- edgeCases: whether the answer/code considers failures, boundaries, and non-happy paths.',
+        '- debugging: whether the answer explains how to investigate, validate, or test the approach.',
+        '- systemsThinking: whether the answer considers broader product, API, data, security, performance, or operational impact.',
         '- Strengths should cite what the answer did well.',
         '- Weaknesses should name the most important improvements.',
         '- Include one follow-up question when it would reveal useful depth.',

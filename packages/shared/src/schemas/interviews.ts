@@ -112,9 +112,25 @@ export const InterviewAnswersResponseSchema = z.object({
 
 // Structured evaluator output for one answer. The API stores and returns this
 // shape so reports can render without depending on provider-specific AI text.
+export const EvaluationSignalSchema = z.object({
+  score: z.number().int().min(0).max(10),
+  note: z.string()
+});
+
+export const EvaluationSignalBreakdownSchema = z.object({
+  correctness: EvaluationSignalSchema,
+  clarity: EvaluationSignalSchema,
+  codeQuality: EvaluationSignalSchema,
+  tradeoffs: EvaluationSignalSchema,
+  edgeCases: EvaluationSignalSchema,
+  debugging: EvaluationSignalSchema,
+  systemsThinking: EvaluationSignalSchema
+});
+
 export const AnswerEvaluationSchema = z.object({
   score: z.number().int().min(0).max(10),
   summary: z.string(),
+  signalBreakdown: EvaluationSignalBreakdownSchema,
   strengths: z.array(z.string()),
   weaknesses: z.array(z.string()),
   followUpQuestion: z.string().optional()
@@ -152,6 +168,8 @@ export type CodeEditorLanguage = z.infer<typeof CodeEditorLanguageSchema>;
 export type SubmitAnswerInput = z.infer<typeof SubmitAnswerSchema>;
 export type InterviewAnswer = z.infer<typeof InterviewAnswerSchema>;
 export type InterviewAnswersResponse = z.infer<typeof InterviewAnswersResponseSchema>;
+export type EvaluationSignal = z.infer<typeof EvaluationSignalSchema>;
+export type EvaluationSignalBreakdown = z.infer<typeof EvaluationSignalBreakdownSchema>;
 export type AnswerEvaluation = z.infer<typeof AnswerEvaluationSchema>;
 export type InterviewAnswerEvaluation = z.infer<typeof InterviewAnswerEvaluationSchema>;
 export type InterviewReportResponse = z.infer<typeof InterviewReportResponseSchema>;
