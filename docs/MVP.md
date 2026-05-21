@@ -112,21 +112,13 @@ Manual smoke test:
 
 ## Nice To Have, Not Required For MVP
 
-These are valuable, but not required to call the MVP done:
+These are larger follow-up areas that would show deeper engineering range. They are intentionally limited to substantial systems work, not small product conveniences.
 
-- [ ] WebRTC video calls
-- [ ] Collaborative code editor
-- [ ] Single-user code editor
-- [ ] Code execution
-- [ ] Report export
-- [ ] Reviewer/admin views
-- [ ] Adaptive follow-up questions
-- [ ] Study plan generation
-- [ ] Interview sharing links
-- [ ] Dashboard filters/search
-- [ ] Password reset
-- [ ] Email verification
-- [ ] Automated end-to-end tests
+- [ ] WebRTC video interview room with camera/microphone controls, signaling, connection state, and reconnect handling.
+- [ ] Collaborative code editor with room presence, WebSocket sync, conflict handling, and reconnect recovery.
+- [ ] Sandboxed code execution with language-specific runners, timeouts, resource limits, and safe result reporting.
+- [ ] Senior-engineering evaluation depth for code and answers, including tradeoffs, edge cases, debugging approach, and systems thinking.
+- [ ] Production operations hardening with smoke checks, structured logging, failure monitoring, and deployment rollback notes.
 
 ## Current MVP Status
 
