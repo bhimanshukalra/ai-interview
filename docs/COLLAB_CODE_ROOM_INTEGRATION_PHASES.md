@@ -16,16 +16,16 @@ Goal: define the room contract before wiring runtime code.
 
 Steps:
 
-- [ ] Add shared collaborative room schemas/types under `packages/shared`.
-- [ ] Define `join-code-room`, `yjs-sync`, `yjs-update`, `awareness-update`, `participants-change`, and `code-room-error` payloads.
-- [ ] Reuse `CodeEditorLanguageSchema` instead of creating a second language enum.
-- [ ] Add a room id helper for `interview:{interviewId}:question:{questionId}`.
-- [ ] Add validation for `interviewId` and `questionId` payloads.
+- [x] Add shared collaborative room schemas/types under `packages/shared`.
+- [x] Define `join-code-room`, `yjs-sync`, `yjs-update`, `awareness-update`, `participants-change`, and `code-room-error` payloads.
+- [x] Reuse `CodeEditorLanguageSchema` instead of creating a second language enum.
+- [x] Add a room id helper for `interview:{interviewId}:question:{questionId}`.
+- [x] Add validation for `interviewId` and `questionId` payloads.
 
 Done when:
 
-- [ ] Web/API/realtime code can import one shared event contract.
-- [ ] Typecheck passes across the workspace.
+- [x] Web/API/realtime code can import one shared event contract.
+- [x] Typecheck passes across the workspace.
 
 ## Phase 2: Collaboration Persistence
 
