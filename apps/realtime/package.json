@@ -1,0 +1,22 @@
+{
+  "name": "realtime",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && eslint apps/realtime"
+  },
+  "dependencies": {
+    "@ai-interview/shared": "workspace:*",
+    "socket.io": "^4.8.3",
+    "yjs": "^13.6.30",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "tsx": "^4.22.3",
+    "typescript": "^5.8.3"
+  }
+}

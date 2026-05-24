@@ -51,17 +51,17 @@ Goal: bring in the lab's realtime loop as a separate service boundary.
 
 Steps:
 
-- [ ] Add a realtime workspace app or service package for Socket.IO/Yjs.
-- [ ] Adapt the lab server entrypoint from `../collab-code-room-lab/server/src/index.ts`.
-- [ ] Add active room state with one `Y.Doc` per interview question room.
-- [ ] Add room creation and cleanup lifecycle.
-- [ ] Add basic health route or startup log for local development.
-- [ ] Add local environment variables for database URL, JWT secret, and allowed web origin.
+- [x] Add a realtime workspace app or service package for Socket.IO/Yjs.
+- [x] Adapt the lab server entrypoint from `../collab-code-room-lab/server/src/index.ts`.
+- [x] Add active room state with one `Y.Doc` per interview question room.
+- [x] Add room creation and cleanup lifecycle.
+- [x] Add basic health route or startup log for local development.
+- [x] Add local environment variables for database URL, JWT secret, and allowed web origin.
 
 Done when:
 
-- [ ] The realtime service can start locally.
-- [ ] A local socket client can connect and receive a simple acknowledgement.
+- [x] The realtime service can start locally.
+- [x] A local socket client can connect and receive a simple acknowledgement.
 
 ## Phase 4: Socket Authentication And Authorization
 
