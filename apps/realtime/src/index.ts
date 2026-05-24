@@ -17,17 +17,30 @@ import { Server } from 'socket.io';
 import * as Y from 'yjs';
 import type { AuthenticatedUser } from './auth';
 import { verifyAuthToken } from './auth';
-import { canAccessCodeRoom, createRealtimeDb, findRealtimeUser } from './db';
+import {
+  canAccessCodeRoom,
+  createRealtimeDb,
+  findRealtimeUser,
+  loadCodeRoomDocument,
+  loadSavedAnswerCode,
+  upsertCodeRoomDocumentSnapshot,
+} from './db';
 import { getRealtimeConfig } from './env';
 import {
+  clearCodeRoomSaveTimer,
+  createCodeDocumentFromText,
+  createCodeRoom,
+  createDefaultCodeDocument,
   getActiveCodeRoom,
   getCodeRoomParticipants,
-  getOrCreateCodeRoom,
+  getOrCreateDefaultCodeRoom,
   removeCodeRoomIfEmpty,
+  type ActiveCodeRoom,
 } from './rooms';
 
 const config = getRealtimeConfig();
 const db = config.databaseUrl ? createRealtimeDb(config.databaseUrl) : null;
+const saveSnapshotDelayMs = 500;
 
 type CodeRoomSocketData = {
   authorizedRoomIds?: Set<string>;
@@ -120,7 +133,12 @@ io.on('connection', function handleConnection(socket) {
       return;
     }
 
-    const room = getOrCreateCodeRoom(interviewId, questionId, roomId);
+    const room = await getOrLoadCodeRoom(interviewId, questionId, roomId);
+
+    if (!room) {
+      emitRoomError('PERSISTENCE_FAILED', 'Could not load this code room. Please try again.');
+      return;
+    }
 
     socket.join(roomId);
     socket.data.roomId = roomId;
@@ -176,6 +194,7 @@ io.on('connection', function handleConnection(socket) {
     }
 
     Y.applyUpdate(room.doc, update);
+    scheduleRoomSnapshotSave(room);
 
     socket.to(roomId).emit(
       'yjs-update',
@@ -222,6 +241,10 @@ io.on('connection', function handleConnection(socket) {
   });
 
   socket.on('disconnect', function handleDisconnect() {
+    void handleSocketDisconnect();
+  });
+
+  async function handleSocketDisconnect(): Promise<void> {
     const roomId = socket.data.roomId as string | undefined;
 
     if (!roomId) {
@@ -245,8 +268,12 @@ io.on('connection', function handleConnection(socket) {
       }),
     );
 
+    if (room.participants.size === 0) {
+      await flushRoomSnapshot(room);
+    }
+
     removeCodeRoomIfEmpty(room);
-  });
+  }
 
   function isAuthorizedForRoom(roomId: string): boolean {
     return Boolean(socket.data.authorizedRoomIds?.has(roomId));
@@ -265,6 +292,94 @@ io.on('connection', function handleConnection(socket) {
       return await canAccessCodeRoom(db, { interviewId, questionId, userId });
     } catch {
       return null;
+    }
+  }
+
+  async function getOrLoadCodeRoom(
+    interviewId: string,
+    questionId: string,
+    roomId: string,
+  ): Promise<ActiveCodeRoom | null> {
+    const activeRoom = getActiveCodeRoom(roomId);
+
+    if (activeRoom) {
+      return activeRoom;
+    }
+
+    if (!db) {
+      return getOrCreateDefaultCodeRoom(interviewId, questionId, roomId);
+    }
+
+    try {
+      const persistedDocument = await loadCodeRoomDocument(db, { interviewId, questionId });
+
+      if (persistedDocument) {
+        const doc = new Y.Doc();
+        Y.applyUpdate(doc, Buffer.from(persistedDocument.yjsSnapshot, 'base64'));
+
+        return createCodeRoom({
+          doc,
+          interviewId,
+          language: persistedDocument.language,
+          questionId,
+          roomId,
+        });
+      }
+
+      const savedAnswerCode = await loadSavedAnswerCode(db, { interviewId, questionId });
+
+      if (savedAnswerCode) {
+        return createCodeRoom({
+          doc: createCodeDocumentFromText(savedAnswerCode.code),
+          interviewId,
+          language: savedAnswerCode.language,
+          questionId,
+          roomId,
+        });
+      }
+
+      return createCodeRoom({
+        doc: createDefaultCodeDocument(),
+        interviewId,
+        language: 'typescript',
+        questionId,
+        roomId,
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  function scheduleRoomSnapshotSave(room: ActiveCodeRoom): void {
+    clearCodeRoomSaveTimer(room);
+
+    room.saveTimer = setTimeout(() => {
+      void flushRoomSnapshot(room);
+    }, saveSnapshotDelayMs);
+  }
+
+  async function flushRoomSnapshot(room: ActiveCodeRoom): Promise<void> {
+    clearCodeRoomSaveTimer(room);
+
+    if (!db) {
+      return;
+    }
+
+    try {
+      await upsertCodeRoomDocumentSnapshot(db, {
+        interviewId: room.interviewId,
+        language: room.language,
+        questionId: room.questionId,
+        yjsSnapshot: Buffer.from(Y.encodeStateAsUpdate(room.doc)).toString('base64'),
+      });
+    } catch {
+      socket.emit(
+        'code-room-error',
+        CodeRoomErrorPayloadSchema.parse({
+          code: 'PERSISTENCE_FAILED',
+          message: 'Could not save the latest code room snapshot.',
+        }),
+      );
     }
   }
 

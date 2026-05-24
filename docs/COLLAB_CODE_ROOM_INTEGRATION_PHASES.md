@@ -89,15 +89,15 @@ Goal: make two authorized browser sessions share one code document.
 
 Steps:
 
-- [ ] On join, load or create the room `Y.Doc`.
-- [ ] If a persisted snapshot exists, apply it.
-- [ ] If no snapshot exists, seed from saved answer code or the editor starter code.
-- [ ] Send `yjs-sync` to the joining socket.
-- [ ] Apply and broadcast `yjs-update` events.
-- [ ] Relay `awareness-update` events without persisting them.
-- [ ] Broadcast `participants-change` on join and disconnect.
-- [ ] Debounce snapshot persistence after updates.
-- [ ] Flush the latest snapshot when the last participant leaves.
+- [x] On join, load or create the room `Y.Doc`.
+- [x] If a persisted snapshot exists, apply it.
+- [x] If no snapshot exists, seed from saved answer code or the editor starter code.
+- [x] Send `yjs-sync` to the joining socket.
+- [x] Apply and broadcast `yjs-update` events.
+- [x] Relay `awareness-update` events without persisting them.
+- [x] Broadcast `participants-change` on join and disconnect.
+- [x] Debounce snapshot persistence after updates.
+- [x] Flush the latest snapshot when the last participant leaves.
 
 Done when:
 
@@ -105,6 +105,8 @@ Done when:
 - [ ] Presence updates on join and leave.
 - [ ] Remote cursors and selections move between sessions.
 - [ ] Refresh restores the latest persisted code.
+
+Note: the server-side sync, awareness, and persistence loop is implemented. These browser acceptance checks need the Phase 6 web client integration.
 
 ## Phase 6: Web App Integration
 

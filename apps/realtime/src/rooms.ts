@@ -8,6 +8,7 @@ export type ActiveCodeRoom = {
   participants: Map<string, CodeRoomParticipant>;
   questionId: string;
   roomId: string;
+  saveTimer?: ReturnType<typeof setTimeout>;
 };
 
 const defaultCode = "console.log('Hello world');";
@@ -19,7 +20,28 @@ export function getActiveCodeRoom(roomId: string): ActiveCodeRoom | null {
   return rooms.get(roomId) ?? null;
 }
 
-export function getOrCreateCodeRoom(interviewId: string, questionId: string, roomId: string): ActiveCodeRoom {
+export function createCodeRoom(input: {
+  doc: Y.Doc;
+  interviewId: string;
+  language: CodeEditorLanguage;
+  questionId: string;
+  roomId: string;
+}): ActiveCodeRoom {
+  const room: ActiveCodeRoom = {
+    doc: input.doc,
+    interviewId: input.interviewId,
+    language: input.language,
+    participants: new Map<string, CodeRoomParticipant>(),
+    questionId: input.questionId,
+    roomId: input.roomId,
+  };
+
+  rooms.set(input.roomId, room);
+
+  return room;
+}
+
+export function getOrCreateDefaultCodeRoom(interviewId: string, questionId: string, roomId: string): ActiveCodeRoom {
   const existingRoom = rooms.get(roomId);
 
   if (existingRoom) {
@@ -29,18 +51,7 @@ export function getOrCreateCodeRoom(interviewId: string, questionId: string, roo
   const doc = new Y.Doc();
   doc.getText('code').insert(0, defaultCode);
 
-  const room: ActiveCodeRoom = {
-    doc,
-    interviewId,
-    language: defaultLanguage,
-    participants: new Map<string, CodeRoomParticipant>(),
-    questionId,
-    roomId,
-  };
-
-  rooms.set(roomId, room);
-
-  return room;
+  return createCodeRoom({ doc, interviewId, language: defaultLanguage, questionId, roomId });
 }
 
 export function removeCodeRoomIfEmpty(room: ActiveCodeRoom): void {
@@ -52,6 +63,29 @@ export function removeCodeRoomIfEmpty(room: ActiveCodeRoom): void {
   rooms.delete(room.roomId);
 }
 
+export function clearCodeRoomSaveTimer(room: ActiveCodeRoom): void {
+  if (!room.saveTimer) {
+    return;
+  }
+
+  clearTimeout(room.saveTimer);
+  room.saveTimer = undefined;
+}
+
 export function getCodeRoomParticipants(room: ActiveCodeRoom): CodeRoomParticipant[] {
   return Array.from(room.participants.values());
+}
+
+export function createDefaultCodeDocument(): Y.Doc {
+  const doc = new Y.Doc();
+  doc.getText('code').insert(0, defaultCode);
+
+  return doc;
+}
+
+export function createCodeDocumentFromText(code: string): Y.Doc {
+  const doc = new Y.Doc();
+  doc.getText('code').insert(0, code);
+
+  return doc;
 }

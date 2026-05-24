@@ -1,7 +1,8 @@
 import { neon } from '@neondatabase/serverless';
+import { CodeEditorLanguageSchema, type CodeEditorLanguage } from '@ai-interview/shared';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { pgTable, text } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import type { AuthenticatedUser } from './auth';
 
 const users = pgTable('users', {
@@ -20,7 +21,33 @@ const interviewQuestions = pgTable('interview_questions', {
   interviewId: text('interview_id').notNull(),
 });
 
+const interviewAnswers = pgTable('interview_answers', {
+  interviewId: text('interview_id').notNull(),
+  questionId: text('question_id').notNull(),
+  code: text('code'),
+  codeLanguage: text('code_language'),
+});
+
+const interviewCodeDocuments = pgTable('interview_code_documents', {
+  id: text('id').primaryKey(),
+  interviewId: text('interview_id').notNull(),
+  questionId: text('question_id').notNull(),
+  language: text('language').notNull(),
+  yjsSnapshot: text('yjs_snapshot').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type RealtimeDatabase = ReturnType<typeof createRealtimeDb>;
+
+export type PersistedCodeRoomDocument = {
+  language: CodeEditorLanguage;
+  yjsSnapshot: string;
+};
+
+export type SavedAnswerCode = {
+  code: string;
+  language: CodeEditorLanguage;
+};
 
 export function createRealtimeDb(databaseUrl: string): ReturnType<typeof drizzle> {
   return drizzle(neon(databaseUrl));
@@ -58,4 +85,83 @@ export async function canAccessCodeRoom(
     .limit(1);
 
   return Boolean(room);
+}
+
+export async function loadCodeRoomDocument(
+  db: RealtimeDatabase,
+  input: { interviewId: string; questionId: string }
+): Promise<PersistedCodeRoomDocument | null> {
+  const [document] = await db
+    .select({
+      language: interviewCodeDocuments.language,
+      yjsSnapshot: interviewCodeDocuments.yjsSnapshot,
+    })
+    .from(interviewCodeDocuments)
+    .where(
+      and(
+        eq(interviewCodeDocuments.interviewId, input.interviewId),
+        eq(interviewCodeDocuments.questionId, input.questionId),
+      )
+    )
+    .limit(1);
+
+  if (!document) {
+    return null;
+  }
+
+  return {
+    language: CodeEditorLanguageSchema.parse(document.language),
+    yjsSnapshot: document.yjsSnapshot,
+  };
+}
+
+export async function loadSavedAnswerCode(
+  db: RealtimeDatabase,
+  input: { interviewId: string; questionId: string }
+): Promise<SavedAnswerCode | null> {
+  const [answer] = await db
+    .select({
+      code: interviewAnswers.code,
+      codeLanguage: interviewAnswers.codeLanguage,
+    })
+    .from(interviewAnswers)
+    .where(and(eq(interviewAnswers.interviewId, input.interviewId), eq(interviewAnswers.questionId, input.questionId)))
+    .limit(1);
+
+  if (!answer?.code?.trim() || !answer.codeLanguage) {
+    return null;
+  }
+
+  return {
+    code: answer.code,
+    language: CodeEditorLanguageSchema.parse(answer.codeLanguage),
+  };
+}
+
+export async function upsertCodeRoomDocumentSnapshot(
+  db: RealtimeDatabase,
+  input: {
+    interviewId: string;
+    language: CodeEditorLanguage;
+    questionId: string;
+    yjsSnapshot: string;
+  }
+): Promise<void> {
+  await db
+    .insert(interviewCodeDocuments)
+    .values({
+      id: crypto.randomUUID(),
+      interviewId: input.interviewId,
+      questionId: input.questionId,
+      language: input.language,
+      yjsSnapshot: input.yjsSnapshot,
+    })
+    .onConflictDoUpdate({
+      target: [interviewCodeDocuments.interviewId, interviewCodeDocuments.questionId],
+      set: {
+        language: input.language,
+        yjsSnapshot: input.yjsSnapshot,
+        updatedAt: new Date(),
+      },
+    });
 }
