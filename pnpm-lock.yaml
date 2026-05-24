@@ -75,6 +75,12 @@ importers:
       '@ai-interview/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@neondatabase/serverless':
+        specifier: ^1.1.0
+        version: 1.1.0
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@cloudflare/workers-types@4.20260511.1)(@neondatabase/serverless@1.1.0)(@types/pg@8.20.0)(pg@8.20.0)
       socket.io:
         specifier: ^4.8.3
         version: 4.8.3

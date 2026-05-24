@@ -8,12 +8,16 @@ import {
   ParticipantsChangePayloadSchema,
   YjsSyncPayloadSchema,
   YjsUpdatePayloadSchema,
+  type CodeRoomErrorCode,
   type CodeRoomClientToServerEvents,
   type CodeRoomServerToClientEvents,
 } from '@ai-interview/shared';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
 import * as Y from 'yjs';
+import type { AuthenticatedUser } from './auth';
+import { verifyAuthToken } from './auth';
+import { canAccessCodeRoom, createRealtimeDb, findRealtimeUser } from './db';
 import { getRealtimeConfig } from './env';
 import {
   getActiveCodeRoom,
@@ -23,6 +27,13 @@ import {
 } from './rooms';
 
 const config = getRealtimeConfig();
+const db = config.databaseUrl ? createRealtimeDb(config.databaseUrl) : null;
+
+type CodeRoomSocketData = {
+  authorizedRoomIds?: Set<string>;
+  roomId?: string;
+  user?: AuthenticatedUser;
+};
 
 const server = createServer(function handleRequest(request, response) {
   if (request.url === '/health') {
@@ -35,15 +46,52 @@ const server = createServer(function handleRequest(request, response) {
   response.end(JSON.stringify({ message: 'Not found.' }));
 });
 
-const io = new Server<CodeRoomClientToServerEvents, CodeRoomServerToClientEvents>(server, {
+const io = new Server<
+  CodeRoomClientToServerEvents,
+  CodeRoomServerToClientEvents,
+  Record<string, never>,
+  CodeRoomSocketData
+>(server, {
   cors: {
     origin: config.allowedOrigin,
     methods: ['GET', 'POST'],
   },
 });
 
+io.use(async function authenticateSocket(socket, next) {
+  if (!config.jwtSecret || !db) {
+    next(new Error('Realtime service is missing required auth configuration.'));
+    return;
+  }
+
+  const token = typeof socket.handshake.auth.token === 'string' ? socket.handshake.auth.token : null;
+
+  if (!token) {
+    next(new Error('Authentication token is required.'));
+    return;
+  }
+
+  const tokenUser = verifyAuthToken(token, config.jwtSecret);
+
+  if (!tokenUser) {
+    next(new Error('Authentication token is invalid or expired.'));
+    return;
+  }
+
+  const user = await findRealtimeUser(db, tokenUser.id);
+
+  if (!user) {
+    next(new Error('Authenticated user was not found.'));
+    return;
+  }
+
+  socket.data.authorizedRoomIds = new Set<string>();
+  socket.data.user = user;
+  next();
+});
+
 io.on('connection', function handleConnection(socket) {
-  socket.on('join-code-room', function handleJoinCodeRoom(rawPayload) {
+  socket.on('join-code-room', async function handleJoinCodeRoom(rawPayload) {
     const parsedPayload = JoinCodeRoomPayloadSchema.safeParse(rawPayload);
 
     if (!parsedPayload.success) {
@@ -51,17 +99,37 @@ io.on('connection', function handleConnection(socket) {
       return;
     }
 
+    const user = socket.data.user;
+
+    if (!user || !db) {
+      emitRoomError('UNAUTHORIZED', 'Please sign in again to join this code room.');
+      return;
+    }
+
     const { interviewId, questionId } = parsedPayload.data;
     const roomId = createCodeRoomId({ interviewId, questionId });
+    const canAccessRoom = await checkCodeRoomAccess(interviewId, questionId, user.id);
+
+    if (canAccessRoom === null) {
+      emitRoomError('PERSISTENCE_FAILED', 'Could not verify code room access. Please try again.');
+      return;
+    }
+
+    if (!canAccessRoom) {
+      emitRoomError('FORBIDDEN', 'You do not have permission to join this code room.');
+      return;
+    }
+
     const room = getOrCreateCodeRoom(interviewId, questionId, roomId);
 
     socket.join(roomId);
     socket.data.roomId = roomId;
+    socket.data.authorizedRoomIds?.add(roomId);
 
     room.participants.set(socket.id, {
       socketId: socket.id,
-      userId: socket.id,
-      name: `Guest ${socket.id.slice(0, 5)}`,
+      userId: user.id,
+      name: user.name,
       joinedAt: new Date().toISOString(),
     });
 
@@ -97,6 +165,11 @@ io.on('connection', function handleConnection(socket) {
     const roomId = createCodeRoomId({ interviewId, questionId });
     const room = getActiveCodeRoom(roomId);
 
+    if (!isAuthorizedForRoom(roomId)) {
+      emitRoomError('FORBIDDEN', 'You do not have permission to edit this code room.');
+      return;
+    }
+
     if (!room) {
       emitRoomError('NOT_FOUND', 'Code room was not found.');
       return;
@@ -126,6 +199,11 @@ io.on('connection', function handleConnection(socket) {
     const { interviewId, questionId, update } = parsedPayload.data;
     const roomId = createCodeRoomId({ interviewId, questionId });
     const room = getActiveCodeRoom(roomId);
+
+    if (!isAuthorizedForRoom(roomId)) {
+      emitRoomError('FORBIDDEN', 'You do not have permission to update awareness for this code room.');
+      return;
+    }
 
     if (!room) {
       emitRoomError('NOT_FOUND', 'Code room was not found.');
@@ -170,7 +248,27 @@ io.on('connection', function handleConnection(socket) {
     removeCodeRoomIfEmpty(room);
   });
 
-  function emitRoomError(code: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'INVALID_UPDATE' | 'PERSISTENCE_FAILED', message: string): void {
+  function isAuthorizedForRoom(roomId: string): boolean {
+    return Boolean(socket.data.authorizedRoomIds?.has(roomId));
+  }
+
+  async function checkCodeRoomAccess(
+    interviewId: string,
+    questionId: string,
+    userId: string,
+  ): Promise<boolean | null> {
+    if (!db) {
+      return null;
+    }
+
+    try {
+      return await canAccessCodeRoom(db, { interviewId, questionId, userId });
+    } catch {
+      return null;
+    }
+  }
+
+  function emitRoomError(code: CodeRoomErrorCode, message: string): void {
     socket.emit('code-room-error', CodeRoomErrorPayloadSchema.parse({ code, message }));
   }
 });

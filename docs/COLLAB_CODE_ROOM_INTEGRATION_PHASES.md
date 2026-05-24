@@ -69,19 +69,19 @@ Goal: make room access match the existing interview ownership model.
 
 Steps:
 
-- [ ] Authenticate sockets with the current bearer token.
-- [ ] Verify JWTs with the same secret used by the API.
-- [ ] Resolve the authenticated user id and display name.
-- [ ] On `join-code-room`, load the interview and question.
-- [ ] Allow only the interview owner in the first slice.
-- [ ] Reject unauthorized joins with `code-room-error`.
-- [ ] Reject edits from unauthorized sockets.
+- [x] Authenticate sockets with the current bearer token.
+- [x] Verify JWTs with the same secret used by the API.
+- [x] Resolve the authenticated user id and display name.
+- [x] On `join-code-room`, load the interview and question.
+- [x] Allow only the interview owner in the first slice.
+- [x] Reject unauthorized joins with `code-room-error`.
+- [x] Reject edits from unauthorized sockets.
 
 Done when:
 
-- [ ] The interview owner can join a room.
-- [ ] A different user cannot join the same room.
-- [ ] Unauthorized updates are rejected server-side.
+- [x] The interview owner can join a room.
+- [x] A different user cannot join the same room.
+- [x] Unauthorized updates are rejected server-side.
 
 ## Phase 5: Yjs Sync And Awareness
 
