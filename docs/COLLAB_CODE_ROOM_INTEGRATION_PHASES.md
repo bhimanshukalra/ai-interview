@@ -33,17 +33,17 @@ Goal: store live Yjs snapshots without changing final answer storage.
 
 Steps:
 
-- [ ] Add `interview_code_documents` to the API database schema.
-- [ ] Add a migration for `interview_code_documents`.
-- [ ] Store `interview_id`, `question_id`, `language`, `yjs_snapshot`, `created_at`, and `updated_at`.
-- [ ] Add a unique constraint for `interview_id` plus `question_id`.
-- [ ] Add small service helpers to load, upsert, and update code document snapshots.
-- [ ] Keep final submitted code in `interview_answers.code`.
+- [x] Add `interview_code_documents` to the API database schema.
+- [x] Add a migration for `interview_code_documents`.
+- [x] Store `interview_id`, `question_id`, `language`, `yjs_snapshot`, `created_at`, and `updated_at`.
+- [x] Add a unique constraint for `interview_id` plus `question_id`.
+- [x] Add small service helpers to load, upsert, and update code document snapshots.
+- [x] Keep final submitted code in `interview_answers.code`.
 
 Done when:
 
-- [ ] A persisted Yjs snapshot can be loaded by interview/question.
-- [ ] The existing answer submission and report flow still works unchanged.
+- [x] A persisted Yjs snapshot can be loaded by interview/question.
+- [x] The existing answer submission and report flow still works unchanged.
 
 ## Phase 3: Realtime Service Scaffold
 

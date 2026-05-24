@@ -66,6 +66,27 @@ export const interviewAnswers = pgTable(
   (table) => [uniqueIndex('interview_answers_interview_question_unique').on(table.interviewId, table.questionId)]
 );
 
+export const interviewCodeDocuments = pgTable(
+  'interview_code_documents',
+  {
+    id: text('id').primaryKey(),
+    interviewId: text('interview_id')
+      .notNull()
+      .references(() => interviews.id, { onDelete: 'cascade' }),
+    questionId: text('question_id')
+      .notNull()
+      .references(() => interviewQuestions.id, { onDelete: 'cascade' }),
+    language: text('language').notNull(),
+    yjsSnapshot: text('yjs_snapshot').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [
+    uniqueIndex('interview_code_documents_interview_question_unique').on(table.interviewId, table.questionId),
+    index('interview_code_documents_interview_id_idx').on(table.interviewId)
+  ]
+);
+
 export const answerEvaluations = pgTable(
   'answer_evaluations',
   {

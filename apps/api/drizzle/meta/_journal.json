@@ -57,6 +57,13 @@
       "when": 1779340630614,
       "tag": "0007_same_bill_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779646396986,
+      "tag": "0008_fluffy_chimera",
+      "breakpoints": true
     }
   ]
 }
