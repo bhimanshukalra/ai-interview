@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import type { CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
-import { CodeEditorPanel, type CodeEditorLanguage } from '@/components/code-editor-panel';
+import type { CodeEditorLanguage, CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 import { useEvaluateInterview } from '@/features/interviews/use-evaluate-interview';
 import { shouldShowCodeEditor } from '@/features/interviews/code-editor';
 import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
+import { CollaborativeCodeEditor } from '@/features/interviews/code-room/collaborative-code-editor';
+import { DEFAULT_CODE_LANGUAGE } from '@/features/interviews/code-room/constants';
 
 type AnswerDrafts = Record<string, string>;
 type CodeDrafts = Record<string, CodeDraft>;
@@ -315,10 +316,11 @@ function InterviewActiveState({
 
       {showCodeEditor ? (
         <div className="mt-6">
-          <CodeEditorPanel
+          <CollaborativeCodeEditor
             key={currentQuestion.id}
-            initialCode={codeDraft?.code ?? ''}
-            initialLanguage={codeDraft?.language ?? 'typescript'}
+            initialLanguage={codeDraft?.language ?? DEFAULT_CODE_LANGUAGE}
+            interviewId={interview.id}
+            questionId={currentQuestion.id}
             onCodeChange={(code, language) => onCodeChange(currentQuestion.id, code, language)}
           />
         </div>

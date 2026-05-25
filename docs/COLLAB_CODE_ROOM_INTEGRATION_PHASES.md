@@ -114,20 +114,20 @@ Goal: replace the local-only code editor state with collaborative state for supp
 
 Steps:
 
-- [ ] Add a code-room feature folder under `apps/web/src/features/interviews`.
-- [ ] Adapt the lab hooks from `../collab-code-room-lab/web/src/features/room/useRoomSocket.ts`.
-- [ ] Adapt the Yjs/Monaco binding from `../collab-code-room-lab/web/src/features/editor/useYjsDocument.ts`.
-- [ ] Connect only when the current interview question should show the code editor.
-- [ ] Join with the current `interviewId` and `questionId`.
-- [ ] Render participants and connection state near the editor.
-- [ ] Disable editing when the room is disconnected or the interview is completed.
-- [ ] Keep the existing written answer textarea and save button flow.
+- [x] Add a code-room feature folder under `apps/web/src/features/interviews`.
+- [x] Adapt the lab hooks from `../collab-code-room-lab/web/src/features/room/useRoomSocket.ts`.
+- [x] Adapt the Yjs/Monaco binding from `../collab-code-room-lab/web/src/features/editor/useYjsDocument.ts`.
+- [x] Connect only when the current interview question should show the code editor.
+- [x] Join with the current `interviewId` and `questionId`.
+- [x] Render participants and connection state near the editor.
+- [x] Disable editing when the room is disconnected or the interview is completed.
+- [x] Keep the existing written answer textarea and save button flow.
 
 Done when:
 
-- [ ] The interview page shows a collaborative editor for technical-style questions.
-- [ ] Non-code interview questions keep the current UI.
-- [ ] Connection and error states are visible to the user.
+- [x] The interview page shows a collaborative editor for technical-style questions.
+- [x] Non-code interview questions keep the current UI.
+- [x] Connection and error states are visible to the user.
 
 ## Phase 7: Save Answer Integration
 
@@ -217,3 +217,7 @@ Start here:
 8. Phase 8: Recovery And Hardening
 
 Leave Phase 9 until the room works reliably for owner-only sessions.
+
+## Follow-Up Cleanup
+
+- [ ] Before deleting `apps/web/src/components/code-editor-panel.tsx`, decide whether to migrate its remaining UI affordances into the collaborative editor: language selector, starter templates, `Starter`, and `Reset`.

@@ -4,10 +4,14 @@ import { CodeEditorLanguageSchema } from './interviews';
 export const CodeRoomSocketEvent = {
   AwarenessUpdate: 'awareness-update',
   CodeRoomError: 'code-room-error',
+  Connect: 'connect',
   Connection: 'connection',
   Disconnect: 'disconnect',
   JoinCodeRoom: 'join-code-room',
   ParticipantsChange: 'participants-change',
+  Reconnect: 'reconnect',
+  ReconnectAttempt: 'reconnect_attempt',
+  ReconnectFailed: 'reconnect_failed',
   YjsSync: 'yjs-sync',
   YjsUpdate: 'yjs-update'
 } as const;
@@ -43,8 +47,20 @@ export const CodeRoomErrorCodeSchema = z.enum([
 
 export const JoinCodeRoomPayloadSchema = CodeRoomIdInputSchema;
 
+export const BinaryUpdateSchema = z.union([
+  z.instanceof(Uint8Array),
+  z.instanceof(ArrayBuffer),
+  z.array(z.number().int().min(0).max(255))
+]).transform((value) => {
+  if (value instanceof Uint8Array) {
+    return value;
+  }
+
+  return new Uint8Array(value);
+});
+
 export const YjsUpdatePayloadSchema = CodeRoomIdInputSchema.extend({
-  update: z.instanceof(Uint8Array)
+  update: BinaryUpdateSchema
 });
 
 export const YjsSyncPayloadSchema = YjsUpdatePayloadSchema.extend({

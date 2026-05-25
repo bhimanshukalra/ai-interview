@@ -7,3 +7,7 @@ export function getApiBaseUrl(): string {
 
   return apiBaseUrl;
 }
+
+export function getRealtimeBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_REALTIME_URL ?? 'http://localhost:8788';
+}
