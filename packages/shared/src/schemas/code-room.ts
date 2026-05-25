@@ -1,13 +1,24 @@
 import { z } from 'zod';
 import { CodeEditorLanguageSchema } from './interviews';
 
+export const CodeRoomSocketEvent = {
+  AwarenessUpdate: 'awareness-update',
+  CodeRoomError: 'code-room-error',
+  Connection: 'connection',
+  Disconnect: 'disconnect',
+  JoinCodeRoom: 'join-code-room',
+  ParticipantsChange: 'participants-change',
+  YjsSync: 'yjs-sync',
+  YjsUpdate: 'yjs-update'
+} as const;
+
 export const CodeRoomEventSchema = z.enum([
-  'join-code-room',
-  'yjs-sync',
-  'yjs-update',
-  'awareness-update',
-  'participants-change',
-  'code-room-error'
+  CodeRoomSocketEvent.JoinCodeRoom,
+  CodeRoomSocketEvent.YjsSync,
+  CodeRoomSocketEvent.YjsUpdate,
+  CodeRoomSocketEvent.AwarenessUpdate,
+  CodeRoomSocketEvent.ParticipantsChange,
+  CodeRoomSocketEvent.CodeRoomError
 ]);
 
 export const CodeRoomIdInputSchema = z.object({
@@ -73,17 +84,17 @@ export type ParticipantsChangePayload = z.infer<typeof ParticipantsChangePayload
 export type CodeRoomErrorPayload = z.infer<typeof CodeRoomErrorPayloadSchema>;
 
 export type CodeRoomClientToServerEvents = {
-  'join-code-room': (payload: JoinCodeRoomPayload) => void;
-  'yjs-update': (payload: YjsUpdatePayload) => void;
-  'awareness-update': (payload: AwarenessUpdatePayload) => void;
+  [CodeRoomSocketEvent.JoinCodeRoom]: (payload: JoinCodeRoomPayload) => void;
+  [CodeRoomSocketEvent.YjsUpdate]: (payload: YjsUpdatePayload) => void;
+  [CodeRoomSocketEvent.AwarenessUpdate]: (payload: AwarenessUpdatePayload) => void;
 };
 
 export type CodeRoomServerToClientEvents = {
-  'yjs-sync': (payload: YjsSyncPayload) => void;
-  'yjs-update': (payload: BroadcastYjsUpdatePayload) => void;
-  'awareness-update': (payload: BroadcastAwarenessUpdatePayload) => void;
-  'participants-change': (payload: ParticipantsChangePayload) => void;
-  'code-room-error': (payload: CodeRoomErrorPayload) => void;
+  [CodeRoomSocketEvent.YjsSync]: (payload: YjsSyncPayload) => void;
+  [CodeRoomSocketEvent.YjsUpdate]: (payload: BroadcastYjsUpdatePayload) => void;
+  [CodeRoomSocketEvent.AwarenessUpdate]: (payload: BroadcastAwarenessUpdatePayload) => void;
+  [CodeRoomSocketEvent.ParticipantsChange]: (payload: ParticipantsChangePayload) => void;
+  [CodeRoomSocketEvent.CodeRoomError]: (payload: CodeRoomErrorPayload) => void;
 };
 
 export function createCodeRoomId(input: CodeRoomIdInput): string {
@@ -91,4 +102,3 @@ export function createCodeRoomId(input: CodeRoomIdInput): string {
 
   return `interview:${interviewId}:question:${questionId}`;
 }
-
