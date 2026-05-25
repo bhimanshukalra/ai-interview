@@ -41,6 +41,13 @@ Cloudflare Worker API:
 - Worker observability remains enabled in `apps/api/wrangler.jsonc`.
 - Source maps remain enabled so production stack traces can be investigated.
 
+Realtime collaboration service:
+
+- `DATABASE_URL` points at the same database used by the API.
+- `JWT_SECRET` matches the API secret so socket auth validates the current bearer token.
+- `CORS_ORIGIN` includes only trusted frontend origins.
+- Realtime logs are reviewed for socket auth failures, forbidden joins, snapshot save failures, and room cleanup.
+
 Neon database:
 
 - Migrations have been applied before the API release depends on new schema.
@@ -67,9 +74,30 @@ Run these checks after deployment:
 - Create a new interview.
 - Answer a question and save it.
 - For a technical-style interview, enter code, save the answer, and confirm the code appears in the report.
+- For a technical-style interview, confirm the collaborative code editor connects and shows the current participant.
 - Finish an interview and confirm the report shows score, feedback, follow-up prompts, and signal breakdown.
 - Return to the dashboard and confirm the completed interview appears in history.
 - Log out and log back in, then confirm protected data still loads.
+
+## Collaborative Code Room Acceptance
+
+Run this checklist before calling the collaborative editor integration complete:
+
+- Owner can join their own interview code room.
+- Another user cannot join someone else's room.
+- Candidate/interviewer participant access works when `interview_participants` rows exist.
+- Interviewers can join the room but see a read-only editor.
+- Two authorized sessions see the same code.
+- Typing syncs both ways.
+- Remote cursor and selection appear.
+- Presence updates on join and leave.
+- Refresh restores latest code.
+- Temporary disconnect reconnects to the same document.
+- Server restart restores latest persisted snapshot.
+- Saving an answer stores latest code in `interview_answers`.
+- Report shows saved code.
+- AI evaluation includes saved code.
+- Completed/report-ready interviews do not accept answer saves or collaborative edits.
 
 If any smoke check fails, stop the release and follow the rollback section.
 

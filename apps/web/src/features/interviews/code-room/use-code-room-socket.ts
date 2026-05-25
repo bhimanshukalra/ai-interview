@@ -4,6 +4,7 @@ import {
   AwarenessUpdatePayloadSchema,
   CodeRoomErrorPayloadSchema,
   CodeRoomSocketEvent,
+  LanguageChangePayloadSchema,
   ParticipantsChangePayloadSchema,
   YjsSyncPayloadSchema,
   YjsUpdatePayloadSchema,
@@ -42,9 +43,11 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
   errorMessage: string | null;
   participants: CodeRoomParticipant[];
   syncState: SyncState;
+  updateLanguage: (language: CodeEditorLanguage) => void;
 } {
   const optionsRef = useRef(options);
   const joinStateRef = useRef<CodeRoomJoinState | null>(null);
+  const languageUpdateRef = useRef<((language: CodeEditorLanguage) => void) | null>(null);
   const [authToken] = useState(() => getStoredApiAuthorizationToken());
   const [connectionState, setConnectionState] = useState<ConnectionState>(authToken ? 'connecting' : 'disconnected');
   const [access, setAccess] = useState<CodeRoomAccess | null>(null);
@@ -149,6 +152,17 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
       publishAwarenessState();
     });
 
+    socket.on(CodeRoomSocketEvent.LanguageChange, function handleLanguageChange(rawPayload) {
+      const parsedPayload = LanguageChangePayloadSchema.safeParse(rawPayload);
+
+      if (!parsedPayload.success) {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
+      optionsRef.current.onLanguageChange(parsedPayload.data.language);
+    });
+
     socket.on(CodeRoomSocketEvent.YjsSync, function handleYjsSync(rawPayload) {
       const parsedPayload = YjsSyncPayloadSchema.safeParse(rawPayload);
 
@@ -250,11 +264,25 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
     options.doc.on('update', handleDocUpdate);
     options.awareness.on('update', handleAwarenessLocalUpdate);
 
+    function updateLanguage(language: CodeEditorLanguage): void {
+      if (!joinStateRef.current) {
+        return;
+      }
+
+      socket.emit(CodeRoomSocketEvent.LanguageChange, {
+        ...joinStateRef.current,
+        language,
+      });
+    }
+
+    languageUpdateRef.current = updateLanguage;
+
     return function cleanupCodeRoomSocket() {
       socket.off(CodeRoomSocketEvent.Connect, handleConnect);
       socket.off(CodeRoomSocketEvent.ConnectError, handleConnectError);
       socket.off(CodeRoomSocketEvent.Disconnect, handleDisconnect);
       socket.off(CodeRoomSocketEvent.ParticipantsChange);
+      socket.off(CodeRoomSocketEvent.LanguageChange);
       socket.off(CodeRoomSocketEvent.YjsSync);
       socket.off(CodeRoomSocketEvent.YjsUpdate);
       socket.off(CodeRoomSocketEvent.AwarenessUpdate);
@@ -266,9 +294,14 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
       options.awareness.off('update', handleAwarenessLocalUpdate);
       options.awareness.setLocalState(null);
       socket.disconnect();
+      languageUpdateRef.current = null;
       joinStateRef.current = null;
     };
   }, [authToken, options.awareness, options.doc, options.interviewId, options.questionId]);
+
+  function updateRoomLanguage(language: CodeEditorLanguage): void {
+    languageUpdateRef.current?.(language);
+  }
 
   return {
     connectionState,
@@ -276,5 +309,6 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
     errorMessage,
     participants,
     syncState,
+    updateLanguage: updateRoomLanguage,
   };
 }

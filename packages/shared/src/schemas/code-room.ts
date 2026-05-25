@@ -9,6 +9,7 @@ export const CodeRoomSocketEvent = {
   Connection: 'connection',
   Disconnect: 'disconnect',
   JoinCodeRoom: 'join-code-room',
+  LanguageChange: 'language-change',
   ParticipantsChange: 'participants-change',
   Reconnect: 'reconnect',
   ReconnectAttempt: 'reconnect_attempt',
@@ -19,6 +20,7 @@ export const CodeRoomSocketEvent = {
 
 export const CodeRoomEventSchema = z.enum([
   CodeRoomSocketEvent.JoinCodeRoom,
+  CodeRoomSocketEvent.LanguageChange,
   CodeRoomSocketEvent.YjsSync,
   CodeRoomSocketEvent.YjsUpdate,
   CodeRoomSocketEvent.AwarenessUpdate,
@@ -56,6 +58,10 @@ export const CodeRoomErrorCodeSchema = z.enum([
 
 export const JoinCodeRoomPayloadSchema = CodeRoomIdInputSchema;
 
+export const LanguageChangePayloadSchema = CodeRoomIdInputSchema.extend({
+  language: CodeEditorLanguageSchema
+});
+
 export const BinaryUpdateSchema = z.union([
   z.instanceof(Uint8Array),
   z.instanceof(ArrayBuffer),
@@ -75,6 +81,10 @@ export const YjsUpdatePayloadSchema = CodeRoomIdInputSchema.extend({
 export const YjsSyncPayloadSchema = YjsUpdatePayloadSchema.extend({
   access: CodeRoomAccessSchema,
   language: CodeEditorLanguageSchema
+});
+
+export const BroadcastLanguageChangePayloadSchema = LanguageChangePayloadSchema.extend({
+  updatedBy: z.string().min(1)
 });
 
 export const BroadcastYjsUpdatePayloadSchema = YjsUpdatePayloadSchema.extend({
@@ -103,8 +113,10 @@ export type InterviewParticipantRole = z.infer<typeof InterviewParticipantRoleSc
 export type CodeRoomParticipant = z.infer<typeof CodeRoomParticipantSchema>;
 export type CodeRoomErrorCode = z.infer<typeof CodeRoomErrorCodeSchema>;
 export type JoinCodeRoomPayload = z.infer<typeof JoinCodeRoomPayloadSchema>;
+export type LanguageChangePayload = z.infer<typeof LanguageChangePayloadSchema>;
 export type YjsUpdatePayload = z.infer<typeof YjsUpdatePayloadSchema>;
 export type YjsSyncPayload = z.infer<typeof YjsSyncPayloadSchema>;
+export type BroadcastLanguageChangePayload = z.infer<typeof BroadcastLanguageChangePayloadSchema>;
 export type BroadcastYjsUpdatePayload = z.infer<typeof BroadcastYjsUpdatePayloadSchema>;
 export type AwarenessUpdatePayload = z.infer<typeof AwarenessUpdatePayloadSchema>;
 export type BroadcastAwarenessUpdatePayload = z.infer<typeof BroadcastAwarenessUpdatePayloadSchema>;
@@ -113,11 +125,13 @@ export type CodeRoomErrorPayload = z.infer<typeof CodeRoomErrorPayloadSchema>;
 
 export type CodeRoomClientToServerEvents = {
   [CodeRoomSocketEvent.JoinCodeRoom]: (payload: JoinCodeRoomPayload) => void;
+  [CodeRoomSocketEvent.LanguageChange]: (payload: LanguageChangePayload) => void;
   [CodeRoomSocketEvent.YjsUpdate]: (payload: YjsUpdatePayload) => void;
   [CodeRoomSocketEvent.AwarenessUpdate]: (payload: AwarenessUpdatePayload) => void;
 };
 
 export type CodeRoomServerToClientEvents = {
+  [CodeRoomSocketEvent.LanguageChange]: (payload: BroadcastLanguageChangePayload) => void;
   [CodeRoomSocketEvent.YjsSync]: (payload: YjsSyncPayload) => void;
   [CodeRoomSocketEvent.YjsUpdate]: (payload: BroadcastYjsUpdatePayload) => void;
   [CodeRoomSocketEvent.AwarenessUpdate]: (payload: BroadcastAwarenessUpdatePayload) => void;

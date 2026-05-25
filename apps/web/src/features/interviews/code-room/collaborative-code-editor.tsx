@@ -9,7 +9,12 @@ import type { CodeEditorLanguage } from '@ai-interview/shared';
 import { useYjsCodeDocument } from './use-yjs-code-document';
 import { useCodeRoomSocket } from './use-code-room-socket';
 import { ParticipantsList } from './participants-list';
-import { CODE_ROOM_COLORS, DEFAULT_CODE_LANGUAGE } from './constants';
+import {
+  CODE_EDITOR_LANGUAGE_OPTIONS,
+  CODE_ROOM_COLORS,
+  DEFAULT_CODE_LANGUAGE,
+  STARTER_CODE_BY_LANGUAGE,
+} from './constants';
 
 type CollaborativeCodeEditorProps = {
   initialLanguage?: CodeEditorLanguage;
@@ -50,6 +55,11 @@ const syncLabel = {
   syncing: 'Syncing',
 };
 
+const selectClass =
+  'min-h-10 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 outline-none transition focus:border-teal-700 focus:ring-4 focus:ring-teal-700/15 disabled:cursor-not-allowed disabled:opacity-50';
+const secondaryButtonClass =
+  'min-h-10 rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50';
+
 export const CollaborativeCodeEditor = forwardRef<CollaborativeCodeEditorHandle, CollaborativeCodeEditorProps>(
   CollaborativeCodeEditorComponent,
 );
@@ -66,7 +76,7 @@ function CollaborativeCodeEditorComponent({
   const onCodeChangeRef = useRef(onCodeChange);
   const [language, setLanguage] = useState<CodeEditorLanguage>(initialLanguage);
   const [code, setCode] = useState('');
-  const { access, connectionState, errorMessage, participants, syncState } = useCodeRoomSocket({
+  const { access, connectionState, errorMessage, participants, syncState, updateLanguage } = useCodeRoomSocket({
     awareness,
     doc,
     interviewId,
@@ -76,6 +86,7 @@ function CollaborativeCodeEditorComponent({
   const lineCount = useMemo(() => getLineCount(code), [code]);
   const isEditorReadOnly =
     readOnly || access?.canEdit === false || connectionState === 'disconnected' || connectionState === 'reconnecting';
+  const canUseEditorControls = !isEditorReadOnly;
 
   useImperativeHandle(ref, function createCollaborativeCodeEditorHandle() {
     return {
@@ -129,6 +140,33 @@ function CollaborativeCodeEditorComponent({
     void bindEditor(editor);
   };
 
+  function updateCodeDocument(nextCode: string): void {
+    text.delete(0, text.length);
+    text.insert(0, nextCode);
+  }
+
+  function handleLanguageChange(nextLanguage: CodeEditorLanguage): void {
+    setLanguage(nextLanguage);
+    onCodeChangeRef.current(text.toString(), nextLanguage);
+    updateLanguage(nextLanguage);
+  }
+
+  function useStarterCode(): void {
+    if (code.trim().length > 0 && !window.confirm('Replace current code with starter code?')) {
+      return;
+    }
+
+    updateCodeDocument(STARTER_CODE_BY_LANGUAGE[language]);
+  }
+
+  function resetEditor(): void {
+    if (code.trim().length > 0 && !window.confirm('Clear this code draft?')) {
+      return;
+    }
+
+    updateCodeDocument('');
+  }
+
   useEffect(() => {
     return function cleanupMonacoBinding() {
       bindingRef.current?.destroy();
@@ -145,9 +183,40 @@ function CollaborativeCodeEditorComponent({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-sm">
+          <label className="sr-only" htmlFor="collaborative-code-editor-language">
+            Language
+          </label>
+          <select
+            className={selectClass}
+            disabled={!canUseEditorControls}
+            id="collaborative-code-editor-language"
+            value={language}
+            onChange={(event) => handleLanguageChange(event.target.value as CodeEditorLanguage)}
+          >
+            {CODE_EDITOR_LANGUAGE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <button
+            className={secondaryButtonClass}
+            disabled={!canUseEditorControls}
+            type="button"
+            onClick={useStarterCode}
+          >
+            Starter
+          </button>
+          <button
+            className={secondaryButtonClass}
+            disabled={!canUseEditorControls}
+            type="button"
+            onClick={resetEditor}
+          >
+            Reset
+          </button>
           <StatusPill label={connectionLabel[connectionState]} />
           <StatusPill label={syncLabel[syncState]} />
-          <StatusPill label={languageLabel(language)} />
           {access ? <StatusPill label={access.canEdit ? 'Can edit' : 'View only'} /> : null}
         </div>
       </div>
@@ -210,8 +279,4 @@ function getLineCount(value: string): number {
   }
 
   return value.split('\n').length;
-}
-
-function languageLabel(language: CodeEditorLanguage): string {
-  return language === 'sql' ? 'SQL' : language.charAt(0).toUpperCase() + language.slice(1);
 }

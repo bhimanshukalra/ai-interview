@@ -3,6 +3,7 @@ import type { RealtimeDatabase } from '../db';
 import { handleAwarenessUpdate } from './handlers/awareness-update';
 import { handleSocketDisconnect } from './handlers/disconnect';
 import { handleJoinCodeRoom } from './handlers/join-code-room';
+import { handleLanguageChange } from './handlers/language-change';
 import { handleYjsUpdate } from './handlers/yjs-update';
 import type { CodeRoomServer } from './types';
 
@@ -19,6 +20,10 @@ export function registerCodeRoomEvents({ db, io }: RegisterCodeRoomEventsInput):
 
     socket.on(CodeRoomSocketEvent.YjsUpdate, function registerYjsUpdate(rawPayload) {
       handleYjsUpdate({ db, rawPayload, socket });
+    });
+
+    socket.on(CodeRoomSocketEvent.LanguageChange, function registerLanguageChange(rawPayload) {
+      handleLanguageChange({ db, rawPayload, socket });
     });
 
     socket.on(CodeRoomSocketEvent.AwarenessUpdate, function registerAwarenessUpdate(rawPayload) {
