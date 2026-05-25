@@ -16,7 +16,7 @@ import {
   STARTER_CODE_BY_LANGUAGE,
 } from './constants';
 
-type CollaborativeCodeEditorProps = {
+type CodeEditorProps = {
   initialLanguage?: CodeEditorLanguage;
   interviewId: string;
   onCodeChange: (code: string, language: CodeEditorLanguage) => void;
@@ -24,7 +24,7 @@ type CollaborativeCodeEditorProps = {
   readOnly?: boolean;
 };
 
-export type CollaborativeCodeEditorHandle = {
+export type CodeEditorHandle = {
   getCurrentCodeDraft: () => {
     code: string;
     language: CodeEditorLanguage;
@@ -60,17 +60,17 @@ const selectClass =
 const secondaryButtonClass =
   'min-h-10 rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50';
 
-export const CollaborativeCodeEditor = forwardRef<CollaborativeCodeEditorHandle, CollaborativeCodeEditorProps>(
-  CollaborativeCodeEditorComponent,
+export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
+  CodeEditorComponent,
 );
 
-function CollaborativeCodeEditorComponent({
+function CodeEditorComponent({
   initialLanguage = DEFAULT_CODE_LANGUAGE,
   interviewId,
   onCodeChange,
   questionId,
   readOnly = false,
-}: CollaborativeCodeEditorProps, ref: ForwardedRef<CollaborativeCodeEditorHandle>): React.ReactElement {
+}: CodeEditorProps, ref: ForwardedRef<CodeEditorHandle>): React.ReactElement {
   const { awareness, doc, text } = useYjsCodeDocument();
   const bindingRef = useRef<MonacoBinding | null>(null);
   const onCodeChangeRef = useRef(onCodeChange);
@@ -88,7 +88,7 @@ function CollaborativeCodeEditorComponent({
     readOnly || access?.canEdit === false || connectionState === 'disconnected' || connectionState === 'reconnecting';
   const canUseEditorControls = !isEditorReadOnly;
 
-  useImperativeHandle(ref, function createCollaborativeCodeEditorHandle() {
+  useImperativeHandle(ref, function createCodeEditorHandle() {
     return {
       getCurrentCodeDraft() {
         return {
@@ -183,13 +183,13 @@ function CollaborativeCodeEditorComponent({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <label className="sr-only" htmlFor="collaborative-code-editor-language">
+          <label className="sr-only" htmlFor="code-editor-language">
             Language
           </label>
           <select
             className={selectClass}
             disabled={!canUseEditorControls}
-            id="collaborative-code-editor-language"
+            id="code-editor-language"
             value={language}
             onChange={(event) => handleLanguageChange(event.target.value as CodeEditorLanguage)}
           >

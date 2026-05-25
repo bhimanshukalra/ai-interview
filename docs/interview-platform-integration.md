@@ -322,7 +322,7 @@ Suggested structure:
 
 ```text
 apps/web/src/features/interviews/code-room/
-  collaborative-code-editor.tsx
+  code-editor.tsx
   interview-code-room.tsx
   participants-list.tsx
   use-code-room-socket.ts

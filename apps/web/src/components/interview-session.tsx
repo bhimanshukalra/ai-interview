@@ -9,9 +9,9 @@ import { useEvaluateInterview } from '@/features/interviews/use-evaluate-intervi
 import { shouldShowCodeEditor } from '@/features/interviews/code-editor';
 import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
 import {
-  CollaborativeCodeEditor,
-  type CollaborativeCodeEditorHandle,
-} from '@/features/interviews/code-room/collaborative-code-editor';
+  CodeEditor,
+  type CodeEditorHandle,
+} from '@/features/interviews/code-room/code-editor';
 import { DEFAULT_CODE_LANGUAGE } from '@/features/interviews/code-room/constants';
 
 type AnswerDrafts = Record<string, string>;
@@ -41,7 +41,7 @@ type InterviewCompleteStateProps = {
 type InterviewActiveStateProps = {
   answeredCount: number;
   answers: AnswerDrafts;
-  codeEditorRef: RefObject<CollaborativeCodeEditorHandle | null>;
+  codeEditorRef: RefObject<CodeEditorHandle | null>;
   codeDraft: CodeDraft | null;
   currentIndex: number;
   interview: CreateInterviewResponse;
@@ -61,7 +61,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
   const router = useRouter();
   const evaluateInterview = useEvaluateInterview();
   const submitAnswer = useSubmitAnswer();
-  const codeEditorRef = useRef<CollaborativeCodeEditorHandle | null>(null);
+  const codeEditorRef = useRef<CodeEditorHandle | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
@@ -325,7 +325,7 @@ function InterviewActiveState({
 
       {showCodeEditor ? (
         <div className="mt-6">
-          <CollaborativeCodeEditor
+          <CodeEditor
             key={currentQuestion.id}
             ref={codeEditorRef}
             initialLanguage={codeDraft?.language ?? DEFAULT_CODE_LANGUAGE}
