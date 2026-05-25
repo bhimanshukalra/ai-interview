@@ -1,4 +1,4 @@
-type RealtimeConfig = {
+export type RealtimeConfig = {
   allowedOrigin: string;
   databaseUrl?: string;
   jwtSecret?: string;
