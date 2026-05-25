@@ -17,8 +17,13 @@ export function ParticipantsList({ participants }: ParticipantsListProps): React
           key={participant.socketId}
         >
           {participant.name}
+          <span className="ml-2 text-xs uppercase text-stone-500">{participantRoleLabel(participant.role)}</span>
         </li>
       ))}
     </ul>
   );
+}
+
+function participantRoleLabel(role: CodeRoomParticipant['role']): string {
+  return role === 'interviewer' ? 'Interviewer' : 'Candidate';
 }

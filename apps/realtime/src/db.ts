@@ -1,5 +1,10 @@
 import { neon } from '@neondatabase/serverless';
-import { CodeEditorLanguageSchema, type CodeEditorLanguage } from '@ai-interview/shared';
+import {
+  CodeEditorLanguageSchema,
+  InterviewParticipantRoleSchema,
+  type CodeEditorLanguage,
+  type CodeRoomAccess,
+} from '@ai-interview/shared';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
@@ -26,6 +31,12 @@ const interviewAnswers = pgTable('interview_answers', {
   questionId: text('question_id').notNull(),
   code: text('code'),
   codeLanguage: text('code_language'),
+});
+
+const interviewParticipants = pgTable('interview_participants', {
+  interviewId: text('interview_id').notNull(),
+  role: text('role').notNull(),
+  userId: text('user_id').notNull(),
 });
 
 const interviewCodeDocuments = pgTable('interview_code_documents', {
@@ -70,21 +81,48 @@ export async function findRealtimeUser(db: RealtimeDatabase, userId: string): Pr
 export async function canAccessCodeRoom(
   db: RealtimeDatabase,
   input: { interviewId: string; questionId: string; userId: string }
-): Promise<boolean> {
+): Promise<CodeRoomAccess | null> {
   const [room] = await db
-    .select({ questionId: interviewQuestions.id })
+    .select({
+      ownerId: interviews.userId,
+      participantRole: interviewParticipants.role,
+      questionId: interviewQuestions.id,
+    })
     .from(interviewQuestions)
     .innerJoin(interviews, eq(interviews.id, interviewQuestions.interviewId))
+    .leftJoin(
+      interviewParticipants,
+      and(
+        eq(interviewParticipants.interviewId, interviews.id),
+        eq(interviewParticipants.userId, input.userId),
+      ),
+    )
     .where(
       and(
         eq(interviews.id, input.interviewId),
-        eq(interviews.userId, input.userId),
         eq(interviewQuestions.id, input.questionId),
       )
     )
     .limit(1);
 
-  return Boolean(room);
+  if (!room) {
+    return null;
+  }
+
+  if (room.ownerId === input.userId) {
+    return { canEdit: true, role: 'candidate' };
+  }
+
+  if (!room.participantRole) {
+    return null;
+  }
+
+  const role = InterviewParticipantRoleSchema.parse(room.participantRole);
+
+  return {
+    canEdit: role === 'candidate',
+    role,
+  };
 }
 
 export async function loadCodeRoomDocument(

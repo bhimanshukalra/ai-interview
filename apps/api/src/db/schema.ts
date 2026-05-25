@@ -87,6 +87,26 @@ export const interviewCodeDocuments = pgTable(
   ]
 );
 
+export const interviewParticipants = pgTable(
+  'interview_participants',
+  {
+    id: text('id').primaryKey(),
+    interviewId: text('interview_id')
+      .notNull()
+      .references(() => interviews.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+  },
+  (table) => [
+    uniqueIndex('interview_participants_interview_user_unique').on(table.interviewId, table.userId),
+    index('interview_participants_interview_id_idx').on(table.interviewId),
+    index('interview_participants_user_id_idx').on(table.userId)
+  ]
+);
+
 export const answerEvaluations = pgTable(
   'answer_evaluations',
   {

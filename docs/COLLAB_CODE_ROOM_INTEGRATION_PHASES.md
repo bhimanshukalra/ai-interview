@@ -186,17 +186,27 @@ Goal: move beyond owner-only testing when the core collaboration loop is stable.
 
 Steps:
 
-- [ ] Add an `interview_participants` table or equivalent access model.
-- [ ] Add roles such as `candidate` and `interviewer`.
-- [ ] Update room authorization to allow assigned participants.
-- [ ] Decide whether interviewers can edit or only observe.
-- [ ] Show participant roles in the room UI.
-- [ ] Add acceptance tests for candidate/interviewer access.
+- [x] Add an `interview_participants` table or equivalent access model.
+- [x] Add roles such as `candidate` and `interviewer`.
+- [x] Update room authorization to allow assigned participants.
+- [x] Decide whether interviewers can edit or only observe.
+- [x] Show participant roles in the room UI.
+- [x] Add acceptance tests for candidate/interviewer access.
 
 Done when:
 
-- [ ] Candidate and interviewer accounts can join the same interview room.
-- [ ] Unauthorized users are still blocked.
+- [x] Candidate and interviewer accounts can join the same interview room.
+- [x] Unauthorized users are still blocked.
+
+Decision: owners and candidates can edit code and save answers. Interviewers can join the code room as read-only observers.
+
+Candidate/interviewer acceptance checks:
+
+- Add a `candidate` row in `interview_participants` for a second user and the interview.
+- Confirm that user can open the interview page, join the room, edit code, and save the answer.
+- Add an `interviewer` row in `interview_participants` for a third user and the interview.
+- Confirm that user can open the interview page and join the room, but the editor is read-only.
+- Confirm a user without an owner or participant record cannot open the interview or join the room.
 
 ## Manual Acceptance Test
 

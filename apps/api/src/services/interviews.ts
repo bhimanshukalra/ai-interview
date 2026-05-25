@@ -12,6 +12,7 @@ import type {
 import {
   CodeEditorLanguageSchema,
   getInterviewSummaryStatus,
+  InterviewParticipantRoleSchema,
   InterviewLevelSchema,
   InterviewTypeSchema,
 } from '@ai-interview/shared';
@@ -19,11 +20,14 @@ import type { AnswerEvaluationConfig } from '../ai/answer-evaluator';
 import type { QuestionGenerationConfig } from '../ai/question-generator';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { Database } from '../db/client';
-import { answerEvaluations, interviewAnswers, interviewQuestions, interviews } from '../db/schema';
+import { answerEvaluations, interviewAnswers, interviewParticipants, interviewQuestions, interviews } from '../db/schema';
 import { evaluateInterviewAnswer } from './answer-evaluation';
 import { generateInterviewQuestions } from './question-generation';
 
 type AnswerEvaluationRow = typeof answerEvaluations.$inferSelect;
+type InterviewAccess = {
+  canEdit: boolean;
+};
 type IndexedInterviewQuestion = InterviewQuestion & { index: number };
 type InterviewRow = typeof interviews.$inferSelect;
 
@@ -218,10 +222,10 @@ export async function getInterview(
   const [interview] = await db
     .select()
     .from(interviews)
-    .where(and(eq(interviews.id, id), eq(interviews.userId, userId)))
+    .where(eq(interviews.id, id))
     .limit(1);
 
-  if (!interview) {
+  if (!interview || !(await getInterviewAccess(interview, userId, db))) {
     return null;
   }
 
@@ -243,6 +247,30 @@ export async function getInterview(
     },
     questions: questions.map(mapInterviewQuestion),
   };
+}
+
+async function getInterviewAccess(
+  interview: InterviewRow,
+  userId: string,
+  db: Database,
+): Promise<InterviewAccess | null> {
+  if (interview.userId === userId) {
+    return { canEdit: true };
+  }
+
+  const [participant] = await db
+    .select({ role: interviewParticipants.role })
+    .from(interviewParticipants)
+    .where(and(eq(interviewParticipants.interviewId, interview.id), eq(interviewParticipants.userId, userId)))
+    .limit(1);
+
+  if (!participant) {
+    return null;
+  }
+
+  const role = InterviewParticipantRoleSchema.parse(participant.role);
+
+  return { canEdit: role === 'candidate' };
 }
 
 export async function listInterviews(userId: string, db: Database): Promise<InterviewSummary[]> {
@@ -325,15 +353,20 @@ export async function submitInterviewAnswer(
   input: SubmitAnswerInput,
   db: Database,
 ): Promise<InterviewAnswer | null> {
+  const [interview] = await db.select().from(interviews).where(eq(interviews.id, interviewId)).limit(1);
+  const access = interview ? await getInterviewAccess(interview, userId, db) : null;
+
+  if (!access?.canEdit) {
+    return null;
+  }
+
   const [question] = await db
     .select({ id: interviewQuestions.id })
     .from(interviewQuestions)
-    .innerJoin(interviews, eq(interviews.id, interviewQuestions.interviewId))
     .where(
       and(
         eq(interviewQuestions.id, input.questionId),
         eq(interviewQuestions.interviewId, interviewId),
-        eq(interviews.userId, userId),
       ),
     )
     .limit(1);

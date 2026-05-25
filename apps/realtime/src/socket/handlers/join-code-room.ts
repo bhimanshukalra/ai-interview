@@ -2,6 +2,8 @@ import {
   CodeRoomSocketEvent,
   JoinCodeRoomPayloadSchema,
   YjsSyncPayloadSchema,
+  type CodeRoomAccess,
+  type InterviewParticipantRole,
 } from '@ai-interview/shared';
 import * as Y from 'yjs';
 import type { RealtimeDatabase } from '../../db';
@@ -42,20 +44,9 @@ export async function handleJoinCodeRoom({
   }
 
   const { interviewId, questionId } = parsedPayload.data;
-  const canAccessRoom = await checkCodeRoomAccess(db, interviewId, questionId, user.id);
+  const roomAccess = await checkCodeRoomAccess(db, interviewId, questionId, user.id);
 
-  if (canAccessRoom === null) {
-    logRealtimeWarning('code room join failed: access check unavailable', {
-      interviewId,
-      questionId,
-      socketId: socket.id,
-      userId: user.id,
-    });
-    emitRoomError(socket, 'PERSISTENCE_FAILED', 'Could not verify code room access. Please try again.');
-    return;
-  }
-
-  if (!canAccessRoom) {
+  if (!roomAccess) {
     logRealtimeWarning('code room join rejected: forbidden', {
       interviewId,
       questionId,
@@ -80,14 +71,16 @@ export async function handleJoinCodeRoom({
   }
 
   leavePreviousRoomIfNeeded(io, socket, room.roomId);
-  joinSocketToRoom(socket, room, user.id, user.name);
+  joinSocketToRoom(socket, room, user.id, user.name, roomAccess.role, roomAccess.canEdit);
   logRealtimeInfo('code room joined', {
+    canEdit: roomAccess.canEdit,
     participantCount: room.participants.size,
+    role: roomAccess.role,
     roomId: room.roomId,
     socketId: socket.id,
     userId: user.id,
   });
-  emitYjsSync(socket, room);
+  emitYjsSync(socket, room, roomAccess);
   emitParticipantsChange(io, room);
 }
 
@@ -101,6 +94,7 @@ function leavePreviousRoomIfNeeded(io: CodeRoomServer, socket: CodeRoomSocket, n
   const previousRoom = getActiveCodeRoom(previousRoomId);
   socket.leave(previousRoomId);
   socket.data.authorizedRoomIds?.delete(previousRoomId);
+  socket.data.editableRoomIds?.delete(previousRoomId);
 
   if (!previousRoom) {
     return;
@@ -110,23 +104,35 @@ function leavePreviousRoomIfNeeded(io: CodeRoomServer, socket: CodeRoomSocket, n
   emitParticipantsChange(io, previousRoom);
 }
 
-function joinSocketToRoom(socket: CodeRoomSocket, room: ActiveCodeRoom, userId: string, name: string): void {
+function joinSocketToRoom(
+  socket: CodeRoomSocket,
+  room: ActiveCodeRoom,
+  userId: string,
+  name: string,
+  role: InterviewParticipantRole,
+  canEdit: boolean,
+): void {
   socket.join(room.roomId);
   socket.data.roomId = room.roomId;
   socket.data.authorizedRoomIds?.add(room.roomId);
+  if (canEdit) {
+    socket.data.editableRoomIds?.add(room.roomId);
+  }
 
   room.participants.set(socket.id, {
     socketId: socket.id,
     userId,
     name,
+    role,
     joinedAt: new Date().toISOString(),
   });
 }
 
-function emitYjsSync(socket: CodeRoomSocket, room: ActiveCodeRoom): void {
+function emitYjsSync(socket: CodeRoomSocket, room: ActiveCodeRoom, access: CodeRoomAccess): void {
   socket.emit(
     CodeRoomSocketEvent.YjsSync,
     YjsSyncPayloadSchema.parse({
+      access,
       interviewId: room.interviewId,
       questionId: room.questionId,
       update: Y.encodeStateAsUpdate(room.doc),

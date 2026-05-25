@@ -19,7 +19,7 @@ import {
 import * as Y from 'yjs';
 import { getRealtimeBaseUrl } from '@/lib/config';
 import { getStoredApiAuthorizationToken } from '@/lib/api/client';
-import type { CodeRoomParticipant, ConnectionState, SyncState } from './types';
+import type { CodeRoomAccess, CodeRoomParticipant, ConnectionState, SyncState } from './types';
 
 type UseCodeRoomSocketOptions = {
   awareness: Awareness;
@@ -37,6 +37,7 @@ type CodeRoomJoinState = {
 const REMOTE_UPDATE_ORIGIN = 'remote';
 
 export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
+  access: CodeRoomAccess | null;
   connectionState: ConnectionState;
   errorMessage: string | null;
   participants: CodeRoomParticipant[];
@@ -46,6 +47,7 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
   const joinStateRef = useRef<CodeRoomJoinState | null>(null);
   const [authToken] = useState(() => getStoredApiAuthorizationToken());
   const [connectionState, setConnectionState] = useState<ConnectionState>(authToken ? 'connecting' : 'disconnected');
+  const [access, setAccess] = useState<CodeRoomAccess | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     authToken ? null : 'Please sign in again to use the collaborative code room.',
   );
@@ -165,6 +167,7 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
       }
 
       optionsRef.current.onLanguageChange(payload.language);
+      setAccess(payload.access);
       setSyncState('synced');
     });
 
@@ -269,6 +272,7 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
 
   return {
     connectionState,
+    access,
     errorMessage,
     participants,
     syncState,

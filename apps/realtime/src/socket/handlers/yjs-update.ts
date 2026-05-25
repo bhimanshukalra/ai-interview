@@ -9,7 +9,7 @@ import type { RealtimeDatabase } from '../../db';
 import { logRealtimeWarning } from '../../logger';
 import { getActiveCodeRoom } from '../../rooms';
 import { scheduleRoomSnapshotSave } from '../../rooms/room-persistence';
-import { isAuthorizedForRoom } from '../authorization';
+import { canEditRoom, isAuthorizedForRoom } from '../authorization';
 import { emitRoomError } from '../errors';
 import { flushRoomSnapshotForSocket } from './disconnect';
 import type { CodeRoomSocket } from '../types';
@@ -42,6 +42,18 @@ export function handleYjsUpdate({ db, rawPayload, socket }: HandleYjsUpdateInput
       userId: socket.data.user?.id,
     });
     emitRoomError(socket, 'FORBIDDEN', 'You do not have permission to edit this code room.');
+    return;
+  }
+
+  if (!canEditRoom(socket, roomId)) {
+    logRealtimeWarning('code room edit rejected: read-only participant', {
+      interviewId,
+      questionId,
+      roomId,
+      socketId: socket.id,
+      userId: socket.data.user?.id,
+    });
+    emitRoomError(socket, 'FORBIDDEN', 'You can view this code room, but you do not have edit access.');
     return;
   }
 

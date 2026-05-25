@@ -31,10 +31,18 @@ export const CodeRoomIdInputSchema = z.object({
   questionId: z.string().min(1)
 });
 
+export const InterviewParticipantRoleSchema = z.enum(['candidate', 'interviewer']);
+
+export const CodeRoomAccessSchema = z.object({
+  canEdit: z.boolean(),
+  role: InterviewParticipantRoleSchema
+});
+
 export const CodeRoomParticipantSchema = z.object({
   socketId: z.string().min(1),
   userId: z.string().min(1),
   name: z.string().min(1),
+  role: InterviewParticipantRoleSchema,
   joinedAt: z.string()
 });
 
@@ -65,6 +73,7 @@ export const YjsUpdatePayloadSchema = CodeRoomIdInputSchema.extend({
 });
 
 export const YjsSyncPayloadSchema = YjsUpdatePayloadSchema.extend({
+  access: CodeRoomAccessSchema,
   language: CodeEditorLanguageSchema
 });
 
@@ -88,7 +97,9 @@ export const CodeRoomErrorPayloadSchema = z.object({
 });
 
 export type CodeRoomEvent = z.infer<typeof CodeRoomEventSchema>;
+export type CodeRoomAccess = z.infer<typeof CodeRoomAccessSchema>;
 export type CodeRoomIdInput = z.infer<typeof CodeRoomIdInputSchema>;
+export type InterviewParticipantRole = z.infer<typeof InterviewParticipantRoleSchema>;
 export type CodeRoomParticipant = z.infer<typeof CodeRoomParticipantSchema>;
 export type CodeRoomErrorCode = z.infer<typeof CodeRoomErrorCodeSchema>;
 export type JoinCodeRoomPayload = z.infer<typeof JoinCodeRoomPayloadSchema>;

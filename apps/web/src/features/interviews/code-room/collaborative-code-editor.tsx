@@ -66,7 +66,7 @@ function CollaborativeCodeEditorComponent({
   const onCodeChangeRef = useRef(onCodeChange);
   const [language, setLanguage] = useState<CodeEditorLanguage>(initialLanguage);
   const [code, setCode] = useState('');
-  const { connectionState, errorMessage, participants, syncState } = useCodeRoomSocket({
+  const { access, connectionState, errorMessage, participants, syncState } = useCodeRoomSocket({
     awareness,
     doc,
     interviewId,
@@ -74,7 +74,8 @@ function CollaborativeCodeEditorComponent({
     questionId,
   });
   const lineCount = useMemo(() => getLineCount(code), [code]);
-  const isEditorReadOnly = readOnly || connectionState === 'disconnected' || connectionState === 'reconnecting';
+  const isEditorReadOnly =
+    readOnly || access?.canEdit === false || connectionState === 'disconnected' || connectionState === 'reconnecting';
 
   useImperativeHandle(ref, function createCollaborativeCodeEditorHandle() {
     return {
@@ -147,6 +148,7 @@ function CollaborativeCodeEditorComponent({
           <StatusPill label={connectionLabel[connectionState]} />
           <StatusPill label={syncLabel[syncState]} />
           <StatusPill label={languageLabel(language)} />
+          {access ? <StatusPill label={access.canEdit ? 'Can edit' : 'View only'} /> : null}
         </div>
       </div>
 

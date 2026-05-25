@@ -7,6 +7,7 @@ import type { AuthenticatedUser } from '../auth';
 
 export type CodeRoomSocketData = {
   authorizedRoomIds?: Set<string>;
+  editableRoomIds?: Set<string>;
   roomId?: string;
   user?: AuthenticatedUser;
 };

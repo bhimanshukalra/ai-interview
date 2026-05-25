@@ -60,6 +60,7 @@ export function registerSocketAuthMiddleware({
     }
 
     socket.data.authorizedRoomIds = new Set<string>();
+    socket.data.editableRoomIds = new Set<string>();
     socket.data.user = user;
     next();
   });
