@@ -12,11 +12,13 @@
     "@ai-interview/shared": "workspace:*",
     "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "^0.45.2",
+    "jsonwebtoken": "^9.0.3",
     "socket.io": "^4.8.3",
     "yjs": "^13.6.30",
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.17",
     "tsx": "^4.22.3",
     "typescript": "^5.8.3"

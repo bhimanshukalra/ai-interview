@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { verify } from 'jsonwebtoken';
 import { z } from 'zod';
 
 export type AuthenticatedUser = {
@@ -14,50 +14,14 @@ const JwtPayloadSchema = z.object({
   sub: z.string().min(1),
 });
 
-const JwtHeaderSchema = z.object({
-  alg: z.literal('HS256'),
-  typ: z.string().optional(),
-});
-
-function decodeBase64UrlJson(value: string): unknown {
-  return JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
-}
-
-function signJwtPayload(header: string, payload: string, secret: string): string {
-  return createHmac('sha256', secret).update(`${header}.${payload}`).digest('base64url');
-}
-
-function signaturesMatch(left: string, right: string): boolean {
-  const leftBuffer = Buffer.from(left);
-  const rightBuffer = Buffer.from(right);
-
-  if (leftBuffer.length !== rightBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(leftBuffer, rightBuffer);
-}
-
 export function verifyAuthToken(token: string, secret: string): AuthenticatedUser | null {
-  const [header, payload, signature] = token.split('.');
+  const payload = verifyToken(token, secret);
 
-  if (!header || !payload || !signature) {
+  if (!payload) {
     return null;
   }
 
-  const parsedHeader = JwtHeaderSchema.safeParse(decodeJwtPart(header));
-
-  if (!parsedHeader.success) {
-    return null;
-  }
-
-  const expectedSignature = signJwtPayload(header, payload, secret);
-
-  if (!signaturesMatch(signature, expectedSignature)) {
-    return null;
-  }
-
-  const parsedPayload = JwtPayloadSchema.safeParse(decodeJwtPart(payload));
+  const parsedPayload = JwtPayloadSchema.safeParse(payload);
 
   if (!parsedPayload.success) {
     return null;
@@ -74,9 +38,9 @@ export function verifyAuthToken(token: string, secret: string): AuthenticatedUse
   };
 }
 
-function decodeJwtPart(value: string): unknown {
+function verifyToken(token: string, secret: string): unknown {
   try {
-    return decodeBase64UrlJson(value);
+    return verify(token, secret, { algorithms: ['HS256'] });
   } catch {
     return null;
   }

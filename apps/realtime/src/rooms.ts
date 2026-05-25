@@ -11,8 +11,8 @@ export type ActiveCodeRoom = {
   saveTimer?: ReturnType<typeof setTimeout>;
 };
 
-const defaultCode = "console.log('Hello world');";
-const defaultLanguage = 'typescript';
+const DEFAULT_CODE = "console.log('Hello world');";
+const DEFAULT_LANGUAGE = 'typescript';
 
 const rooms = new Map<string, ActiveCodeRoom>();
 
@@ -49,9 +49,9 @@ export function getOrCreateDefaultCodeRoom(interviewId: string, questionId: stri
   }
 
   const doc = new Y.Doc();
-  doc.getText('code').insert(0, defaultCode);
+  doc.getText('code').insert(0, DEFAULT_CODE);
 
-  return createCodeRoom({ doc, interviewId, language: defaultLanguage, questionId, roomId });
+  return createCodeRoom({ doc, interviewId, language: DEFAULT_LANGUAGE, questionId, roomId });
 }
 
 export function removeCodeRoomIfEmpty(room: ActiveCodeRoom): void {
@@ -78,7 +78,7 @@ export function getCodeRoomParticipants(room: ActiveCodeRoom): CodeRoomParticipa
 
 export function createDefaultCodeDocument(): Y.Doc {
   const doc = new Y.Doc();
-  doc.getText('code').insert(0, defaultCode);
+  doc.getText('code').insert(0, DEFAULT_CODE);
 
   return doc;
 }
