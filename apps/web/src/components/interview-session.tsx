@@ -2,13 +2,16 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import type { CodeEditorLanguage, CreateInterviewResponse, InterviewAnswer } from '@ai-interview/shared';
 import { getFriendlyApiErrorMessage } from '@/lib/api/errors';
 import { useEvaluateInterview } from '@/features/interviews/use-evaluate-interview';
 import { shouldShowCodeEditor } from '@/features/interviews/code-editor';
 import { useSubmitAnswer } from '@/features/interviews/use-submit-answer';
-import { CollaborativeCodeEditor } from '@/features/interviews/code-room/collaborative-code-editor';
+import {
+  CollaborativeCodeEditor,
+  type CollaborativeCodeEditorHandle,
+} from '@/features/interviews/code-room/collaborative-code-editor';
 import { DEFAULT_CODE_LANGUAGE } from '@/features/interviews/code-room/constants';
 
 type AnswerDrafts = Record<string, string>;
@@ -38,6 +41,7 @@ type InterviewCompleteStateProps = {
 type InterviewActiveStateProps = {
   answeredCount: number;
   answers: AnswerDrafts;
+  codeEditorRef: RefObject<CollaborativeCodeEditorHandle | null>;
   codeDraft: CodeDraft | null;
   currentIndex: number;
   interview: CreateInterviewResponse;
@@ -57,6 +61,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
   const router = useRouter();
   const evaluateInterview = useEvaluateInterview();
   const submitAnswer = useSubmitAnswer();
+  const codeEditorRef = useRef<CollaborativeCodeEditorHandle | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
@@ -74,7 +79,9 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
 
   async function saveCurrentAnswer(): Promise<boolean> {
     const answer = answers[currentQuestion.id]?.trim();
-    const codeDraft = codeDrafts[currentQuestion.id];
+    const codeDraft = shouldShowCodeEditor(interview)
+      ? codeEditorRef.current?.getCurrentCodeDraft() ?? codeDrafts[currentQuestion.id]
+      : null;
     const code = codeDraft?.code.trim() ? codeDraft.code : undefined;
 
     if (!answer) {
@@ -147,6 +154,7 @@ export function InterviewSession({ interview, savedAnswers }: InterviewSessionPr
     <InterviewActiveState
       answeredCount={answeredCount}
       answers={answers}
+      codeEditorRef={codeEditorRef}
       codeDraft={codeDrafts[currentQuestion.id] ?? null}
       currentIndex={currentIndex}
       interview={interview}
@@ -253,6 +261,7 @@ function InterviewCompleteState({
 function InterviewActiveState({
   answeredCount,
   answers,
+  codeEditorRef,
   codeDraft,
   currentIndex,
   interview,
@@ -318,6 +327,7 @@ function InterviewActiveState({
         <div className="mt-6">
           <CollaborativeCodeEditor
             key={currentQuestion.id}
+            ref={codeEditorRef}
             initialLanguage={codeDraft?.language ?? DEFAULT_CODE_LANGUAGE}
             interviewId={interview.id}
             questionId={currentQuestion.id}

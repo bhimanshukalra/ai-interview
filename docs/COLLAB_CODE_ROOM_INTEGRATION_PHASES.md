@@ -135,17 +135,19 @@ Goal: make final saved code flow through the existing answer/report/evaluation p
 
 Steps:
 
-- [ ] On save answer, read `doc.getText('code').toString()`.
-- [ ] Send `code` and `codeLanguage` through the existing submit-answer API.
-- [ ] Keep existing answer validation from shared schemas.
-- [ ] Confirm the report displays the saved code.
-- [ ] Confirm AI evaluation receives the saved code.
-- [ ] Decide whether save should also force-flush the latest Yjs snapshot.
+- [x] On save answer, read `doc.getText('code').toString()`.
+- [x] Send `code` and `codeLanguage` through the existing submit-answer API.
+- [x] Keep existing answer validation from shared schemas.
+- [x] Confirm the report displays the saved code.
+- [x] Confirm AI evaluation receives the saved code.
+- [x] Decide whether save should also force-flush the latest Yjs snapshot.
 
 Done when:
 
-- [ ] Saving an answer persists the latest collaborative code in `interview_answers`.
-- [ ] Reports and AI evaluation continue to work without a new final-code API.
+- [x] Saving an answer persists the latest collaborative code in `interview_answers`.
+- [x] Reports and AI evaluation continue to work without a new final-code API.
+
+Decision: save does not force-flush the Yjs snapshot. The answer API remains the final-code source of truth for reports and AI evaluation, while the realtime service continues to persist live collaboration snapshots through its debounce and room cleanup flow.
 
 ## Phase 8: Recovery And Hardening
 

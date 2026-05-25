@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ForwardedRef } from 'react';
 import type { OnMount } from '@monaco-editor/react';
 import type { editor as MonacoEditor } from 'monaco-editor';
 import type { MonacoBinding } from 'y-monaco';
@@ -17,6 +17,13 @@ type CollaborativeCodeEditorProps = {
   onCodeChange: (code: string, language: CodeEditorLanguage) => void;
   questionId: string;
   readOnly?: boolean;
+};
+
+export type CollaborativeCodeEditorHandle = {
+  getCurrentCodeDraft: () => {
+    code: string;
+    language: CodeEditorLanguage;
+  };
 };
 
 const MonacoEditorComponent = dynamic(() => import('@monaco-editor/react'), {
@@ -43,13 +50,17 @@ const syncLabel = {
   syncing: 'Syncing',
 };
 
-export function CollaborativeCodeEditor({
+export const CollaborativeCodeEditor = forwardRef<CollaborativeCodeEditorHandle, CollaborativeCodeEditorProps>(
+  CollaborativeCodeEditorComponent,
+);
+
+function CollaborativeCodeEditorComponent({
   initialLanguage = DEFAULT_CODE_LANGUAGE,
   interviewId,
   onCodeChange,
   questionId,
   readOnly = false,
-}: CollaborativeCodeEditorProps): React.ReactElement {
+}: CollaborativeCodeEditorProps, ref: ForwardedRef<CollaborativeCodeEditorHandle>): React.ReactElement {
   const { awareness, doc, text } = useYjsCodeDocument();
   const bindingRef = useRef<MonacoBinding | null>(null);
   const onCodeChangeRef = useRef(onCodeChange);
@@ -64,6 +75,17 @@ export function CollaborativeCodeEditor({
   });
   const lineCount = useMemo(() => getLineCount(code), [code]);
   const isEditorReadOnly = readOnly || connectionState === 'disconnected' || connectionState === 'reconnecting';
+
+  useImperativeHandle(ref, function createCollaborativeCodeEditorHandle() {
+    return {
+      getCurrentCodeDraft() {
+        return {
+          code: text.toString(),
+          language,
+        };
+      },
+    };
+  }, [language, text]);
 
   useEffect(() => {
     onCodeChangeRef.current = onCodeChange;
