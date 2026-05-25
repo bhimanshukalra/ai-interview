@@ -155,19 +155,30 @@ Goal: make the first cut reliable enough to demo.
 
 Steps:
 
-- [ ] Handle socket auth failures.
-- [ ] Handle forbidden joins.
-- [ ] Handle malformed Yjs updates.
-- [ ] Handle persistence load and save failures.
-- [ ] Handle reconnect with a new socket id.
-- [ ] Prevent duplicate participant rows.
-- [ ] Add logs for join, disconnect, forbidden edit, save failure, and room cleanup.
-- [ ] Add manual restart testing for persisted snapshots.
+- [x] Handle socket auth failures.
+- [x] Handle forbidden joins.
+- [x] Handle malformed Yjs updates.
+- [x] Handle persistence load and save failures.
+- [x] Handle reconnect with a new socket id.
+- [x] Prevent duplicate participant rows.
+- [x] Add logs for join, disconnect, forbidden edit, save failure, and room cleanup.
+- [x] Add manual restart testing for persisted snapshots.
 
 Done when:
 
 - [ ] Refresh, reconnect, and server restart recover the latest saved document.
 - [ ] Failure states are visible without losing the written answer.
+
+Manual persisted snapshot restart check:
+
+- Start API, web, and realtime services with the same database.
+- Open an interview with a code-capable question.
+- Type a unique code comment in the collaborative editor.
+- Wait for the editor status to return to `Synced`.
+- Stop and restart the realtime service.
+- Refresh the interview page.
+- Confirm the unique code comment is restored in the editor.
+- Save the answer and confirm the report still shows the same code.
 
 ## Phase 9: Multi-User Interview Access
 

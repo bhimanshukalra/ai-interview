@@ -5,7 +5,8 @@ import {
 } from '@ai-interview/shared';
 import * as Y from 'yjs';
 import type { RealtimeDatabase } from '../../db';
-import { type ActiveCodeRoom } from '../../rooms';
+import { logRealtimeInfo, logRealtimeWarning } from '../../logger';
+import { getActiveCodeRoom, type ActiveCodeRoom } from '../../rooms';
 import { getOrLoadCodeRoom } from '../../rooms/room-loader';
 import { checkCodeRoomAccess } from '../authorization';
 import { emitRoomError } from '../errors';
@@ -35,6 +36,7 @@ export async function handleJoinCodeRoom({
   const user = socket.data.user;
 
   if (!user || !db) {
+    logRealtimeWarning('code room join rejected: unauthenticated socket', { socketId: socket.id });
     emitRoomError(socket, 'UNAUTHORIZED', 'Please sign in again to join this code room.');
     return;
   }
@@ -43,11 +45,23 @@ export async function handleJoinCodeRoom({
   const canAccessRoom = await checkCodeRoomAccess(db, interviewId, questionId, user.id);
 
   if (canAccessRoom === null) {
+    logRealtimeWarning('code room join failed: access check unavailable', {
+      interviewId,
+      questionId,
+      socketId: socket.id,
+      userId: user.id,
+    });
     emitRoomError(socket, 'PERSISTENCE_FAILED', 'Could not verify code room access. Please try again.');
     return;
   }
 
   if (!canAccessRoom) {
+    logRealtimeWarning('code room join rejected: forbidden', {
+      interviewId,
+      questionId,
+      socketId: socket.id,
+      userId: user.id,
+    });
     emitRoomError(socket, 'FORBIDDEN', 'You do not have permission to join this code room.');
     return;
   }
@@ -55,13 +69,45 @@ export async function handleJoinCodeRoom({
   const room = await getOrLoadCodeRoom({ db, interviewId, questionId });
 
   if (!room) {
+    logRealtimeWarning('code room join failed: room load failed', {
+      interviewId,
+      questionId,
+      socketId: socket.id,
+      userId: user.id,
+    });
     emitRoomError(socket, 'PERSISTENCE_FAILED', 'Could not load this code room. Please try again.');
     return;
   }
 
+  leavePreviousRoomIfNeeded(io, socket, room.roomId);
   joinSocketToRoom(socket, room, user.id, user.name);
+  logRealtimeInfo('code room joined', {
+    participantCount: room.participants.size,
+    roomId: room.roomId,
+    socketId: socket.id,
+    userId: user.id,
+  });
   emitYjsSync(socket, room);
   emitParticipantsChange(io, room);
+}
+
+function leavePreviousRoomIfNeeded(io: CodeRoomServer, socket: CodeRoomSocket, nextRoomId: string): void {
+  const previousRoomId = socket.data.roomId;
+
+  if (!previousRoomId || previousRoomId === nextRoomId) {
+    return;
+  }
+
+  const previousRoom = getActiveCodeRoom(previousRoomId);
+  socket.leave(previousRoomId);
+  socket.data.authorizedRoomIds?.delete(previousRoomId);
+
+  if (!previousRoom) {
+    return;
+  }
+
+  previousRoom.participants.delete(socket.id);
+  emitParticipantsChange(io, previousRoom);
 }
 
 function joinSocketToRoom(socket: CodeRoomSocket, room: ActiveCodeRoom, userId: string, name: string): void {

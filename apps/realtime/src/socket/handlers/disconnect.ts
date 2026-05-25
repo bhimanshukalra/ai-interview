@@ -4,6 +4,7 @@ import {
   removeCodeRoomIfEmpty,
   type ActiveCodeRoom,
 } from '../../rooms';
+import { logRealtimeInfo, logRealtimeWarning } from '../../logger';
 import { flushRoomSnapshot } from '../../rooms/room-persistence';
 import { emitRoomError } from '../errors';
 import { emitParticipantsChange } from '../participants';
@@ -39,13 +40,23 @@ export async function handleSocketDisconnect({
   }
 
   room.participants.delete(socket.id);
+  logRealtimeInfo('code room participant disconnected', {
+    participantCount: room.participants.size,
+    roomId,
+    socketId: socket.id,
+    userId: socket.data.user?.id,
+  });
   emitParticipantsChange(io, room);
 
   if (room.participants.size === 0) {
     await flushRoomSnapshotForSocket({ db, room, socket });
   }
 
-  removeCodeRoomIfEmpty(room);
+  const removed = removeCodeRoomIfEmpty(room);
+
+  if (removed) {
+    logRealtimeInfo('code room cleaned up', { roomId });
+  }
 }
 
 export async function flushRoomSnapshotForSocket({
@@ -56,6 +67,11 @@ export async function flushRoomSnapshotForSocket({
   const saved = await flushRoomSnapshot({ db, room });
 
   if (!saved) {
+    logRealtimeWarning('code room snapshot save failed', {
+      roomId: room.roomId,
+      socketId: socket.id,
+      userId: socket.data.user?.id,
+    });
     emitRoomError(socket, 'PERSISTENCE_FAILED', 'Could not save the latest code room snapshot.');
   }
 }

@@ -5,6 +5,7 @@ export const CodeRoomSocketEvent = {
   AwarenessUpdate: 'awareness-update',
   CodeRoomError: 'code-room-error',
   Connect: 'connect',
+  ConnectError: 'connect_error',
   Connection: 'connection',
   Disconnect: 'disconnect',
   JoinCodeRoom: 'join-code-room',

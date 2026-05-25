@@ -2,6 +2,7 @@
 
 import {
   AwarenessUpdatePayloadSchema,
+  CodeRoomErrorPayloadSchema,
   CodeRoomSocketEvent,
   ParticipantsChangePayloadSchema,
   YjsSyncPayloadSchema,
@@ -113,40 +114,106 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
 
     function handleReconnectFailed(): void {
       setConnectionState('disconnected');
+      setErrorMessage('Could not reconnect to the collaborative code room. Your written answer is still safe.');
+    }
+
+    function handleConnectError(error: Error): void {
+      setConnectionState('disconnected');
+      setErrorMessage(error.message || 'Could not connect to the collaborative code room.');
+    }
+
+    function handleInvalidRealtimePayload(): void {
+      setSyncState('idle');
+      setErrorMessage('The collaborative code room received invalid realtime data. Your written answer is still safe.');
     }
 
     socket.on(CodeRoomSocketEvent.Connect, handleConnect);
+    socket.on(CodeRoomSocketEvent.ConnectError, handleConnectError);
     socket.on(CodeRoomSocketEvent.Disconnect, handleDisconnect);
     socket.io.on(CodeRoomSocketEvent.ReconnectAttempt, handleReconnectAttempt);
     socket.io.on(CodeRoomSocketEvent.Reconnect, handleReconnect);
     socket.io.on(CodeRoomSocketEvent.ReconnectFailed, handleReconnectFailed);
 
     socket.on(CodeRoomSocketEvent.ParticipantsChange, function handleParticipantsChange(rawPayload) {
-      const payload = ParticipantsChangePayloadSchema.parse(rawPayload);
+      const parsedPayload = ParticipantsChangePayloadSchema.safeParse(rawPayload);
+
+      if (!parsedPayload.success) {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
+      const payload = parsedPayload.data;
       setParticipants(payload.participants);
       publishAwarenessState();
     });
 
     socket.on(CodeRoomSocketEvent.YjsSync, function handleYjsSync(rawPayload) {
-      const payload = YjsSyncPayloadSchema.parse(rawPayload);
-      Y.applyUpdate(optionsRef.current.doc, new Uint8Array(payload.update), REMOTE_UPDATE_ORIGIN);
+      const parsedPayload = YjsSyncPayloadSchema.safeParse(rawPayload);
+
+      if (!parsedPayload.success) {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
+      const payload = parsedPayload.data;
+
+      try {
+        Y.applyUpdate(optionsRef.current.doc, new Uint8Array(payload.update), REMOTE_UPDATE_ORIGIN);
+      } catch {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
       optionsRef.current.onLanguageChange(payload.language);
       setSyncState('synced');
     });
 
     socket.on(CodeRoomSocketEvent.YjsUpdate, function handleYjsUpdate(rawPayload) {
-      const payload = YjsUpdatePayloadSchema.parse(rawPayload);
-      Y.applyUpdate(optionsRef.current.doc, new Uint8Array(payload.update), REMOTE_UPDATE_ORIGIN);
+      const parsedPayload = YjsUpdatePayloadSchema.safeParse(rawPayload);
+
+      if (!parsedPayload.success) {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
+      const payload = parsedPayload.data;
+
+      try {
+        Y.applyUpdate(optionsRef.current.doc, new Uint8Array(payload.update), REMOTE_UPDATE_ORIGIN);
+      } catch {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
       setSyncState('synced');
     });
 
     socket.on(CodeRoomSocketEvent.AwarenessUpdate, function handleAwarenessUpdate(rawPayload) {
-      const payload = AwarenessUpdatePayloadSchema.parse(rawPayload);
-      applyAwarenessUpdate(optionsRef.current.awareness, new Uint8Array(payload.update), REMOTE_UPDATE_ORIGIN);
+      const parsedPayload = AwarenessUpdatePayloadSchema.safeParse(rawPayload);
+
+      if (!parsedPayload.success) {
+        handleInvalidRealtimePayload();
+        return;
+      }
+
+      try {
+        applyAwarenessUpdate(
+          optionsRef.current.awareness,
+          new Uint8Array(parsedPayload.data.update),
+          REMOTE_UPDATE_ORIGIN,
+        );
+      } catch {
+        handleInvalidRealtimePayload();
+      }
     });
 
-    socket.on(CodeRoomSocketEvent.CodeRoomError, function handleCodeRoomError(payload: { message?: string }) {
-      setErrorMessage(payload.message ?? 'The collaborative code room hit an unexpected error.');
+    socket.on(CodeRoomSocketEvent.CodeRoomError, function handleCodeRoomError(rawPayload) {
+      const parsedPayload = CodeRoomErrorPayloadSchema.safeParse(rawPayload);
+      setErrorMessage(
+        parsedPayload.success
+          ? parsedPayload.data.message
+          : 'The collaborative code room hit an unexpected error.',
+      );
     });
 
     function handleDocUpdate(update: Uint8Array, origin: unknown): void {
@@ -182,6 +249,7 @@ export function useCodeRoomSocket(options: UseCodeRoomSocketOptions): {
 
     return function cleanupCodeRoomSocket() {
       socket.off(CodeRoomSocketEvent.Connect, handleConnect);
+      socket.off(CodeRoomSocketEvent.ConnectError, handleConnectError);
       socket.off(CodeRoomSocketEvent.Disconnect, handleDisconnect);
       socket.off(CodeRoomSocketEvent.ParticipantsChange);
       socket.off(CodeRoomSocketEvent.YjsSync);

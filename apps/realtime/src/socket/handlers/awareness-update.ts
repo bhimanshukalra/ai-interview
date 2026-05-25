@@ -4,6 +4,7 @@ import {
   CodeRoomSocketEvent,
   createCodeRoomId,
 } from '@ai-interview/shared';
+import { logRealtimeWarning } from '../../logger';
 import { getActiveCodeRoom } from '../../rooms';
 import { isAuthorizedForRoom } from '../authorization';
 import { emitRoomError } from '../errors';
@@ -18,6 +19,7 @@ export function handleAwarenessUpdate({ rawPayload, socket }: HandleAwarenessUpd
   const parsedPayload = AwarenessUpdatePayloadSchema.safeParse(rawPayload);
 
   if (!parsedPayload.success) {
+    logRealtimeWarning('code room awareness rejected: malformed payload', { socketId: socket.id });
     emitRoomError(socket, 'INVALID_UPDATE', 'Invalid awareness update payload.');
     return;
   }
@@ -27,6 +29,13 @@ export function handleAwarenessUpdate({ rawPayload, socket }: HandleAwarenessUpd
   const room = getActiveCodeRoom(roomId);
 
   if (!isAuthorizedForRoom(socket, roomId)) {
+    logRealtimeWarning('code room awareness rejected: forbidden', {
+      interviewId,
+      questionId,
+      roomId,
+      socketId: socket.id,
+      userId: socket.data.user?.id,
+    });
     emitRoomError(socket, 'FORBIDDEN', 'You do not have permission to update awareness for this code room.');
     return;
   }

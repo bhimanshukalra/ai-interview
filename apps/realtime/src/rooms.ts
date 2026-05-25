@@ -54,13 +54,14 @@ export function getOrCreateDefaultCodeRoom(interviewId: string, questionId: stri
   return createCodeRoom({ doc, interviewId, language: DEFAULT_LANGUAGE, questionId, roomId });
 }
 
-export function removeCodeRoomIfEmpty(room: ActiveCodeRoom): void {
+export function removeCodeRoomIfEmpty(room: ActiveCodeRoom): boolean {
   if (room.participants.size > 0) {
-    return;
+    return false;
   }
 
   room.doc.destroy();
   rooms.delete(room.roomId);
+  return true;
 }
 
 export function clearCodeRoomSaveTimer(room: ActiveCodeRoom): void {

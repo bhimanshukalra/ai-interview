@@ -5,6 +5,7 @@ import {
   loadCodeRoomDocument,
   loadSavedAnswerCode,
 } from '../db';
+import { logRealtimeWarning } from '../logger';
 import {
   createCodeDocumentFromText,
   createCodeRoom,
@@ -71,7 +72,13 @@ export async function getOrLoadCodeRoom({
       questionId,
       roomId,
     });
-  } catch {
+  } catch (error) {
+    logRealtimeWarning('code room load failed', {
+      error: error instanceof Error ? error.message : String(error),
+      interviewId,
+      questionId,
+      roomId,
+    });
     return null;
   }
 }

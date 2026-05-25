@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import type { RealtimeDatabase } from '../db';
 import { upsertCodeRoomDocumentSnapshot } from '../db';
+import { logRealtimeWarning } from '../logger';
 import { clearCodeRoomSaveTimer, type ActiveCodeRoom } from '../rooms';
 
 const saveSnapshotDelayMs = 500;
@@ -37,7 +38,11 @@ export async function flushRoomSnapshot({ db, room }: FlushRoomSnapshotInput): P
     });
 
     return true;
-  } catch {
+  } catch (error) {
+    logRealtimeWarning('code room snapshot persistence failed', {
+      error: error instanceof Error ? error.message : String(error),
+      roomId: room.roomId,
+    });
     return false;
   }
 }
