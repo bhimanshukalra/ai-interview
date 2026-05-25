@@ -7,7 +7,7 @@ import {
 } from '@ai-interview/shared';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import type { AuthenticatedUser } from './auth';
 
 const users = pgTable('users', {
@@ -18,6 +18,7 @@ const users = pgTable('users', {
 
 const interviews = pgTable('interviews', {
   id: text('id').primaryKey(),
+  questionCount: integer('question_count').notNull(),
   userId: text('user_id').notNull(),
 });
 
@@ -31,6 +32,11 @@ const interviewAnswers = pgTable('interview_answers', {
   questionId: text('question_id').notNull(),
   code: text('code'),
   codeLanguage: text('code_language'),
+});
+
+const answerEvaluations = pgTable('answer_evaluations', {
+  interviewId: text('interview_id').notNull(),
+  questionId: text('question_id').notNull(),
 });
 
 const interviewParticipants = pgTable('interview_participants', {
@@ -86,6 +92,7 @@ export async function canAccessCodeRoom(
     .select({
       ownerId: interviews.userId,
       participantRole: interviewParticipants.role,
+      questionCount: interviews.questionCount,
       questionId: interviewQuestions.id,
     })
     .from(interviewQuestions)
@@ -109,8 +116,13 @@ export async function canAccessCodeRoom(
     return null;
   }
 
+  const canEditActiveInterview = !(await hasCompleteInterviewEvaluation(db, {
+    interviewId: input.interviewId,
+    questionCount: room.questionCount,
+  }));
+
   if (room.ownerId === input.userId) {
-    return { canEdit: true, role: 'candidate' };
+    return { canEdit: canEditActiveInterview, role: 'candidate' };
   }
 
   if (!room.participantRole) {
@@ -120,9 +132,21 @@ export async function canAccessCodeRoom(
   const role = InterviewParticipantRoleSchema.parse(room.participantRole);
 
   return {
-    canEdit: role === 'candidate',
+    canEdit: role === 'candidate' && canEditActiveInterview,
     role,
   };
+}
+
+async function hasCompleteInterviewEvaluation(
+  db: RealtimeDatabase,
+  input: { interviewId: string; questionCount: number }
+): Promise<boolean> {
+  const evaluations = await db
+    .select({ questionId: answerEvaluations.questionId })
+    .from(answerEvaluations)
+    .where(eq(answerEvaluations.interviewId, input.interviewId));
+
+  return new Set(evaluations.map((evaluation) => evaluation.questionId)).size >= input.questionCount;
 }
 
 export async function loadCodeRoomDocument(

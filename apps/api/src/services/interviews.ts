@@ -167,6 +167,13 @@ export class InterviewNotReadyError extends Error {
   }
 }
 
+export class InterviewReadOnlyError extends Error {
+  constructor() {
+    super('This interview is read-only and no longer accepts answer changes.');
+    this.name = 'InterviewReadOnlyError';
+  }
+}
+
 export async function createInterview(
   input: CreateInterviewInput,
   userId: string,
@@ -254,8 +261,10 @@ async function getInterviewAccess(
   userId: string,
   db: Database,
 ): Promise<InterviewAccess | null> {
+  const isReportReady = await hasCompleteInterviewEvaluation(interview, db);
+
   if (interview.userId === userId) {
-    return { canEdit: true };
+    return { canEdit: !isReportReady };
   }
 
   const [participant] = await db
@@ -270,7 +279,16 @@ async function getInterviewAccess(
 
   const role = InterviewParticipantRoleSchema.parse(participant.role);
 
-  return { canEdit: role === 'candidate' };
+  return { canEdit: role === 'candidate' && !isReportReady };
+}
+
+async function hasCompleteInterviewEvaluation(interview: InterviewRow, db: Database): Promise<boolean> {
+  const evaluations = await db
+    .select({ questionId: answerEvaluations.questionId })
+    .from(answerEvaluations)
+    .where(eq(answerEvaluations.interviewId, interview.id));
+
+  return new Set(evaluations.map((evaluation) => evaluation.questionId)).size >= interview.questionCount;
 }
 
 export async function listInterviews(userId: string, db: Database): Promise<InterviewSummary[]> {
@@ -356,8 +374,12 @@ export async function submitInterviewAnswer(
   const [interview] = await db.select().from(interviews).where(eq(interviews.id, interviewId)).limit(1);
   const access = interview ? await getInterviewAccess(interview, userId, db) : null;
 
-  if (!access?.canEdit) {
+  if (!access) {
     return null;
+  }
+
+  if (!access.canEdit) {
+    throw new InterviewReadOnlyError();
   }
 
   const [question] = await db

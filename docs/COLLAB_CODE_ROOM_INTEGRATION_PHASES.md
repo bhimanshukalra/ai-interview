@@ -226,6 +226,8 @@ Run this before calling the integration complete:
 - [ ] AI evaluation includes saved code.
 - [ ] Completed interviews do not accept collaborative edits.
 
+Implementation note: completed means report-ready: every interview question has an evaluation. At that point, the API rejects answer saves and the realtime room grants view-only access.
+
 ## Recommended First Implementation Order
 
 Start here:

@@ -20,6 +20,7 @@ import {
   getInterview,
   getInterviewReport,
   InterviewNotReadyError,
+  InterviewReadOnlyError,
   listInterviewAnswers,
   listInterviews,
   submitInterviewAnswer
@@ -160,7 +161,17 @@ async function submitInterviewAnswerHandler(c: Context<Env>): Promise<Response> 
   const body = await c.req.json();
   const input = SubmitAnswerSchema.parse(body);
   const context = getInterviewRouteContext(c);
-  const answer = await submitInterviewAnswer(getInterviewId(c), context.userId, input, context.db);
+  let answer;
+
+  try {
+    answer = await submitInterviewAnswer(getInterviewId(c), context.userId, input, context.db);
+  } catch (error) {
+    if (error instanceof InterviewReadOnlyError) {
+      return c.json({ message: error.message }, 403);
+    }
+
+    throw error;
+  }
 
   if (!answer) {
     return c.json({ message: 'We could not find that question.' }, 404);
