@@ -1,4 +1,4 @@
-import { verify } from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import { z } from 'zod';
 
 export type AuthenticatedUser = {
@@ -40,7 +40,7 @@ export function verifyAuthToken(token: string, secret: string): AuthenticatedUse
 
 function verifyToken(token: string, secret: string): unknown {
   try {
-    return verify(token, secret, { algorithms: ['HS256'] });
+    return jsonwebtoken.verify(token, secret, { algorithms: ['HS256'] });
   } catch {
     return null;
   }

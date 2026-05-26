@@ -1,11 +1,12 @@
 # AI Interview
 
-Text-based AI interview MVP built with Next.js, Hono, and shared TypeScript schemas.
+Text-based AI interview MVP built with Next.js, Hono, Socket.IO/Yjs, and shared TypeScript schemas.
 
 ## Structure
 
 - `apps/web` - Next.js frontend
 - `apps/api` - Hono backend
+- `apps/realtime` - Socket.IO/Yjs collaborative code-room service
 - `packages/shared` - shared Zod schemas and TypeScript types
 
 ## Commands
@@ -13,6 +14,9 @@ Text-based AI interview MVP built with Next.js, Hono, and shared TypeScript sche
 ```bash
 pnpm install
 pnpm dev
+pnpm dev:web
+pnpm dev:api
+pnpm dev:realtime
 pnpm verify:release
 pnpm --filter api test:gemini
 ```
@@ -48,6 +52,23 @@ Production `AI_PROVIDER=gemini` and `AI_MODEL=gemini-2.5-flash` are set in `wran
 Local development should include local frontend origins in `CORS_ORIGIN`, for example `http://localhost:3000,http://127.0.0.1:3000`.
 Set `AI_FALLBACK_TO_MOCK=true` only in local or non-production environments where mock AI output is acceptable.
 
+### Realtime service (`apps/realtime`)
+
+The realtime service runs separately from the Cloudflare Worker API and handles collaborative code-room sync and presence.
+
+Required realtime environment variables:
+
+- `DATABASE_URL` - same database used by the API
+- `JWT_SECRET` - same JWT secret used by the API
+- `CORS_ORIGIN` - comma-separated allowed frontend origins
+- `PORT` - optional, defaults to `8788`
+
+Local development:
+
+```bash
+pnpm dev:realtime
+```
+
 ### Neon
 
 Create a Neon project and use the pooled connection string for both local migrations and the deployed API.
@@ -76,7 +97,7 @@ Core product capabilities:
 - [x] AI answer evaluation with scoring, feedback, strengths, improvements, and follow-up prompts.
 - [x] End-to-end interview flow from setup to answer submission to final report.
 - [x] Interview history dashboard with status, score, and quick resume/report actions.
-- [x] Code editor for technical-style interviews, saved with answers and shown in reports.
+- [x] Collaborative code editor for technical-style interviews, saved with answers and shown in reports.
 - [x] Gemini prompt hardening for untrusted user-provided interview, answer, and code content.
 
 Before calling the MVP done:
@@ -84,7 +105,9 @@ Before calling the MVP done:
 - [ ] Run and confirm `pnpm -r typecheck`.
 - [ ] Run and confirm `pnpm --filter web build`.
 - [ ] Manually smoke test register, create interview, answer all questions, generate report, return to dashboard, log out, log back in, resume, and view report.
+- [ ] Manually smoke test collaborative code editing across two authorized sessions.
 - [ ] Confirm deployed web/API environments are configured.
+- [ ] Confirm deployed realtime environment is configured.
 - [ ] Document known limitations.
 
 ## Post-MVP Roadmap
@@ -93,9 +116,10 @@ These are larger follow-up areas that show deeper engineering range. They are in
 
 - [x] Senior-engineering evaluation depth for code and answers, including tradeoffs, edge cases, debugging approach, and systems thinking.
 - [x] Production operations hardening with smoke checks, structured logging, failure monitoring, and deployment rollback notes.
-- [ ] Collaborative code editor with room presence, WebSocket sync, conflict handling, and reconnect recovery.
+- [x] Collaborative code editor with room presence, WebSocket sync, conflict handling, reconnect recovery, and multi-user access roles.
 - [ ] WebRTC video interview room with camera/microphone controls, signaling, connection state, and reconnect handling.
 - [ ] Sandboxed code execution with language-specific runners, timeouts, resource limits, and safe result reporting.
+- [ ] Automated confidence suite for API ownership rules, realtime room authorization, collaborative editor flows, and report generation.
 
 ## Engineering TODO
 
@@ -109,5 +133,5 @@ These are larger follow-up areas that show deeper engineering range. They are in
 - [x] Expand code quality cleanup from `AGENTS.md`: route/service boundaries, shared schemas, named functions, and env access patterns.
 - [ ] Add broader automated coverage for auth, interview ownership, answer submission, report generation, and frontend flows.
 - [x] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
-- [ ] Improve interview UX: question navigation, draft recovery, report readability, and clearer next actions.
-- [ ] Prepare production launch checklist: seeded manual test plan, deployment verification, rollback notes, and known limitations.
+- [ ] Improve interview UX: question navigation, report readability, and clearer next actions.
+- [ ] Prepare production launch checklist: seeded manual test plan, realtime deployment verification, rollback notes, and known limitations.
