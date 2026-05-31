@@ -13,6 +13,7 @@ import {
   type CodeEditorHandle,
 } from '@/features/interviews/code-room/code-editor';
 import { DEFAULT_CODE_LANGUAGE } from '@/features/interviews/code-room/constants';
+import { InterviewVideoRoom } from '@/features/interviews/video-room/interview-video-room';
 
 type AnswerDrafts = Record<string, string>;
 type CodeDrafts = Record<string, CodeDraft>;
@@ -322,6 +323,10 @@ function InterviewActiveState({
           placeholder="Write your answer here..."
         />
       </label>
+
+      <div className="mt-6">
+        <InterviewVideoRoom interviewId={interview.id} />
+      </div>
 
       {showCodeEditor ? (
         <div className="mt-6">

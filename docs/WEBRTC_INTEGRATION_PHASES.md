@@ -288,20 +288,20 @@ Goal: get camera/microphone access and render a safe local preview.
 
 Steps:
 
-- [ ] Add `useLocalMedia`.
-- [ ] Request `getUserMedia({ audio: true, video: true })` only when the video room is opened.
-- [ ] Render local preview with `video.srcObject`.
-- [ ] Add mic mute/unmute by setting `audioTrack.enabled`.
-- [ ] Add camera on/off by setting `videoTrack.enabled`.
-- [ ] Stop tracks on end call and unmount.
-- [ ] Guard against late `getUserMedia` resolution after unmount.
-- [ ] Handle permission denial with visible UI.
+- [x] Add `useLocalMedia`.
+- [x] Request `getUserMedia({ audio: true, video: true })` only when the video room is opened.
+- [x] Render local preview with `video.srcObject`.
+- [x] Add mic mute/unmute by setting `audioTrack.enabled`.
+- [x] Add camera on/off by setting `videoTrack.enabled`.
+- [x] Stop tracks on end call and unmount.
+- [x] Guard against late `getUserMedia` resolution after unmount.
+- [x] Handle permission denial with visible UI.
 
 Done when:
 
-- [ ] User sees their own preview.
-- [ ] Mute/camera controls affect local tracks.
-- [ ] Leaving the room stops camera/microphone access.
+- [x] User sees their own preview.
+- [x] Mute/camera controls affect local tracks.
+- [x] Leaving the room stops camera/microphone access.
 
 ## Phase 4: Peer Connection
 
@@ -352,7 +352,7 @@ Goal: make video feel native to this product.
 
 Steps:
 
-- [ ] Render `InterviewVideoRoom` in `InterviewSession`.
+- [x] Render `InterviewVideoRoom` in `InterviewSession`.
 - [ ] Join by `interviewId`, not room id or email.
 - [ ] Use authenticated user identity from the existing API token.
 - [ ] Reuse interview participant roles.
