@@ -249,16 +249,16 @@ Goal: define the video-room socket contract before runtime wiring.
 
 Steps:
 
-- [ ] Add `packages/shared/src/schemas/video-room.ts`.
-- [ ] Define video room event constants.
-- [ ] Define join, participant, offer, answer, ICE, media-toggle, leave, and error payload schemas.
-- [ ] Export schemas and inferred types from `packages/shared/src/index.ts`.
-- [ ] Use existing participant role schema rather than creating a second role enum.
+- [x] Add `packages/shared/src/schemas/video-room.ts`.
+- [x] Define video room event constants.
+- [x] Define join, participant, offer, answer, ICE, media-toggle, leave, and error payload schemas.
+- [x] Export schemas and inferred types from `packages/shared/src/index.ts`.
+- [x] Use existing participant role schema rather than creating a second role enum.
 
 Done when:
 
-- [ ] Web and realtime can import one shared video-room contract.
-- [ ] Typecheck passes.
+- [x] Web and realtime can import one shared video-room contract.
+- [x] Typecheck passes.
 
 ## Phase 2: Realtime Signaling Boundary
 
