@@ -4,6 +4,7 @@ import {
   InterviewParticipantRoleSchema,
   type CodeEditorLanguage,
   type CodeRoomAccess,
+  type InterviewParticipantRole,
 } from '@ai-interview/shared';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
@@ -64,6 +65,10 @@ export type PersistedCodeRoomDocument = {
 export type SavedAnswerCode = {
   code: string;
   language: CodeEditorLanguage;
+};
+
+export type VideoRoomAccess = {
+  role: InterviewParticipantRole;
 };
 
 export function createRealtimeDb(databaseUrl: string): ReturnType<typeof drizzle> {
@@ -134,6 +139,43 @@ export async function canAccessCodeRoom(
   return {
     canEdit: role === 'candidate' && canEditActiveInterview,
     role,
+  };
+}
+
+export async function canAccessVideoRoom(
+  db: RealtimeDatabase,
+  input: { interviewId: string; userId: string }
+): Promise<VideoRoomAccess | null> {
+  const [room] = await db
+    .select({
+      ownerId: interviews.userId,
+      participantRole: interviewParticipants.role,
+    })
+    .from(interviews)
+    .leftJoin(
+      interviewParticipants,
+      and(
+        eq(interviewParticipants.interviewId, interviews.id),
+        eq(interviewParticipants.userId, input.userId),
+      ),
+    )
+    .where(eq(interviews.id, input.interviewId))
+    .limit(1);
+
+  if (!room) {
+    return null;
+  }
+
+  if (room.ownerId === input.userId) {
+    return { role: 'candidate' };
+  }
+
+  if (!room.participantRole) {
+    return null;
+  }
+
+  return {
+    role: InterviewParticipantRoleSchema.parse(room.participantRole),
   };
 }
 

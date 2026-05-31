@@ -4,6 +4,7 @@ import { createRealtimeDb } from './db';
 import { getRealtimeConfig } from './env';
 import { registerCodeRoomEvents } from './socket/events';
 import { registerSocketAuthMiddleware } from './socket/middleware';
+import { registerVideoRoomEvents } from './socket/video-room/events';
 import type { CodeRoomServer } from './socket/types';
 
 const config = getRealtimeConfig();
@@ -29,6 +30,7 @@ const io: CodeRoomServer = new Server(server, {
 
 registerSocketAuthMiddleware({ config, db, io });
 registerCodeRoomEvents({ db, io });
+registerVideoRoomEvents({ db, io });
 
 server.listen(config.port, function handleListen() {
   console.warn(`Realtime service listening on ${config.port}`);

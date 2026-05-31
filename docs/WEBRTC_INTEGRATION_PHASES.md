@@ -266,21 +266,21 @@ Goal: add authenticated WebRTC signaling without touching media streams.
 
 Steps:
 
-- [ ] Add video-room handlers under `apps/realtime`.
-- [ ] Register video-room events separately from code-room events.
-- [ ] Authenticate sockets with the existing JWT middleware.
-- [ ] Authorize `join-video-room` against interview owner/participant access.
-- [ ] Track active video participants by socket id.
-- [ ] Broadcast participant changes on join/leave/disconnect.
-- [ ] Forward offer, answer, and ICE candidate payloads to target sockets.
-- [ ] Forward media-toggle status to other room participants.
-- [ ] Emit clear `video-room-error` events for unauthorized or malformed payloads.
+- [x] Add video-room handlers under `apps/realtime`.
+- [x] Register video-room events separately from code-room events.
+- [x] Authenticate sockets with the existing JWT middleware.
+- [x] Authorize `join-video-room` against interview owner/participant access.
+- [x] Track active video participants by socket id.
+- [x] Broadcast participant changes on join/leave/disconnect.
+- [x] Forward offer, answer, and ICE candidate payloads to target sockets.
+- [x] Forward media-toggle status to other room participants.
+- [x] Emit clear `video-room-error` events for unauthorized or malformed payloads.
 
 Done when:
 
-- [ ] Authorized users can join a video room.
-- [ ] Unauthorized users are rejected server-side.
-- [ ] Offer/answer/ICE messages are forwarded only inside authorized rooms.
+- [x] Authorized users can join a video room.
+- [x] Unauthorized users are rejected server-side.
+- [x] Offer/answer/ICE messages are forwarded only inside authorized rooms.
 
 ## Phase 3: Local Media And Video UI
 
