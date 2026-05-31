@@ -110,6 +110,13 @@ Before calling the MVP done:
 - [ ] Confirm deployed realtime environment is configured.
 - [ ] Document known limitations.
 
+## Project Showcase TODO
+
+- [ ] Add a demo video or GIF to the README.
+- [ ] Add screenshots for dashboard, interview setup, interview session, report, and collaborative editor.
+- [ ] Add a live demo link if hosting is practical.
+- [ ] Keep WebRTC clearly marked as roadmap-only until video/audio rooms are implemented.
+
 ## Post-MVP Roadmap
 
 These are larger follow-up areas that show deeper engineering range. They are intentionally limited to substantial systems work, not small product conveniences.
@@ -121,6 +128,8 @@ These are larger follow-up areas that show deeper engineering range. They are in
 - [ ] Sandboxed code execution with language-specific runners, timeouts, resource limits, and safe result reporting.
 - [ ] Automated confidence suite for API ownership rules, realtime room authorization, collaborative editor flows, and report generation.
 
+WebRTC is roadmap-only. The app does not currently include camera/microphone UI, remote video tiles, peer connection setup, or signaling for audio/video calls.
+
 ## Engineering TODO
 
 - [x] Core interview flow: create interviews, answer questions, evaluate results, and view reports.
@@ -131,7 +140,18 @@ These are larger follow-up areas that show deeper engineering range. They are in
 - [x] Frontend workflow polish: loading states, progress, report navigation, restart/back actions, and clearer save behavior.
 - [x] Finish UI state consistency across all user-facing screens: loading, error, empty, and loaded states.
 - [x] Expand code quality cleanup from `AGENTS.md`: route/service boundaries, shared schemas, named functions, and env access patterns.
-- [ ] Add broader automated coverage for auth, interview ownership, answer submission, report generation, and frontend flows.
+- [ ] Add automated coverage for auth ownership.
+- [ ] Add automated coverage for interview creation.
+- [ ] Add automated coverage for answer submission.
+- [ ] Add automated coverage for report generation.
+- [ ] Add automated coverage for realtime room authorization.
 - [x] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
 - [ ] Improve interview UX: question navigation, report readability, and clearer next actions.
 - [ ] Prepare production launch checklist: seeded manual test plan, realtime deployment verification, rollback notes, and known limitations.
+
+## Known Limitations
+
+- WebRTC video/audio rooms are not implemented yet.
+- Sandboxed code execution is not implemented yet; code is evaluated by AI review, not by running user code.
+- Collaborative editor acceptance still needs full multi-session smoke testing in a deployed or production-like environment.
+- Automated test coverage is still intentionally small and needs expansion before production launch.
