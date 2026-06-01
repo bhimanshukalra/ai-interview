@@ -1,12 +1,12 @@
 # AI Interview
 
-Text-based AI interview MVP built with Next.js, Hono, Socket.IO/Yjs, and shared TypeScript schemas.
+AI interview MVP built with Next.js, Hono, Socket.IO/Yjs, WebRTC, and shared TypeScript schemas.
 
 ## Structure
 
 - `apps/web` - Next.js frontend
 - `apps/api` - Hono backend
-- `apps/realtime` - Socket.IO/Yjs collaborative code-room service
+- `apps/realtime` - Socket.IO/Yjs collaborative code-room and WebRTC signaling service
 - `packages/shared` - shared Zod schemas and TypeScript types
 
 ## Commands
@@ -19,6 +19,7 @@ pnpm dev:api
 pnpm dev:realtime
 pnpm verify:release
 pnpm --filter api test:gemini
+pnpm --filter realtime test
 ```
 
 ## Deployment
@@ -54,7 +55,7 @@ Set `AI_FALLBACK_TO_MOCK=true` only in local or non-production environments wher
 
 ### Realtime service (`apps/realtime`)
 
-The realtime service runs separately from the Cloudflare Worker API and handles collaborative code-room sync and presence.
+The realtime service runs separately from the Cloudflare Worker API and handles collaborative code-room sync, presence, and WebRTC signaling.
 
 Required realtime environment variables:
 
@@ -98,6 +99,7 @@ Core product capabilities:
 - [x] End-to-end interview flow from setup to answer submission to final report.
 - [x] Interview history dashboard with status, score, and quick resume/report actions.
 - [x] Collaborative code editor for technical-style interviews, saved with answers and shown in reports.
+- [x] WebRTC video interview room with camera/microphone controls, signaling, connection state, reconnect handling, and two-user smoke-test coverage.
 - [x] Gemini prompt hardening for untrusted user-provided interview, answer, and code content.
 
 Before calling the MVP done:
@@ -113,9 +115,8 @@ Before calling the MVP done:
 ## Project Showcase TODO
 
 - [ ] Add a demo video or GIF to the README.
-- [ ] Add screenshots for dashboard, interview setup, interview session, report, and collaborative editor.
+- [ ] Add screenshots for dashboard, interview setup, interview session, report, collaborative editor, and video room.
 - [ ] Add a live demo link if hosting is practical.
-- [ ] Keep WebRTC clearly marked as roadmap-only until video/audio rooms are implemented.
 
 ## Post-MVP Roadmap
 
@@ -124,11 +125,11 @@ These are larger follow-up areas that show deeper engineering range. They are in
 - [x] Senior-engineering evaluation depth for code and answers, including tradeoffs, edge cases, debugging approach, and systems thinking.
 - [x] Production operations hardening with smoke checks, structured logging, failure monitoring, and deployment rollback notes.
 - [x] Collaborative code editor with room presence, WebSocket sync, conflict handling, reconnect recovery, and multi-user access roles.
-- [ ] WebRTC video interview room with camera/microphone controls, signaling, connection state, and reconnect handling.
+- [x] WebRTC video interview room with camera/microphone controls, signaling, connection state, and reconnect handling.
 - [ ] Sandboxed code execution with language-specific runners, timeouts, resource limits, and safe result reporting.
 - [ ] Automated confidence suite for API ownership rules, realtime room authorization, collaborative editor flows, and report generation.
 
-WebRTC is roadmap-only. The app does not currently include camera/microphone UI, remote video tiles, peer connection setup, or signaling for audio/video calls.
+WebRTC is implemented for a two-person interview call. Multi-participant video, screen sharing, recording, device selection, and production TURN configuration remain future enhancements.
 
 ## Engineering TODO
 
@@ -151,7 +152,7 @@ WebRTC is roadmap-only. The app does not currently include camera/microphone UI,
 
 ## Known Limitations
 
-- WebRTC video/audio rooms are not implemented yet.
+- WebRTC currently supports a two-person interview call only; production-grade reliability still needs TURN configuration.
 - Sandboxed code execution is not implemented yet; code is evaluated by AI review, not by running user code.
-- Collaborative editor acceptance still needs full multi-session smoke testing in a deployed or production-like environment.
+- Collaborative editor and WebRTC acceptance still need full multi-session smoke testing in a deployed or production-like environment.
 - Automated test coverage is still intentionally small and needs expansion before production launch.
