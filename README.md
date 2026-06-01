@@ -114,9 +114,14 @@ Before calling the MVP done:
 
 ## Project Showcase TODO
 
+- [ ] Add a concise product pitch at the top of the README.
+- [ ] Add an architecture diagram covering web, API, realtime, shared contracts, database, Gemini, collaborative editor, and WebRTC signaling.
+- [ ] Add an engineering highlights section for auth, shared schemas, AI prompt hardening, collaborative editing, WebRTC, and focused tests.
+- [ ] Add a tradeoffs and limitations section that frames deferred work intentionally.
 - [ ] Add a demo video or GIF to the README.
 - [ ] Add screenshots for dashboard, interview setup, interview session, report, collaborative editor, and video room.
 - [ ] Add a live demo link if hosting is practical.
+- [ ] Add final verification notes with typecheck, build, realtime tests, and manual smoke tests.
 
 ## Post-MVP Roadmap
 
