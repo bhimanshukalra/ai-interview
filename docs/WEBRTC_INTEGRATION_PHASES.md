@@ -309,21 +309,21 @@ Goal: establish a two-person WebRTC call.
 
 Steps:
 
-- [ ] Add `usePeerConnection`.
-- [ ] Create one `RTCPeerConnection` for the first remote participant.
-- [ ] Add local tracks before creating offers or answers.
-- [ ] Send `video-offer` when another participant joins.
-- [ ] Create and send `video-answer` on incoming offer.
-- [ ] Add remote answer on caller side.
-- [ ] Exchange ICE candidates in both directions.
-- [ ] Render remote stream on `track` event.
-- [ ] Track `connectionState` and `iceConnectionState`.
-- [ ] Clear remote stream when the peer leaves.
+- [x] Add `usePeerConnection`.
+- [x] Create one `RTCPeerConnection` for the first remote participant.
+- [x] Add local tracks before creating offers or answers.
+- [x] Send `video-offer` when another participant joins.
+- [x] Create and send `video-answer` on incoming offer.
+- [x] Add remote answer on caller side.
+- [x] Exchange ICE candidates in both directions.
+- [x] Render remote stream on `track` event.
+- [x] Track `connectionState` and `iceConnectionState`.
+- [x] Clear remote stream when the peer leaves.
 
 Done when:
 
 - [ ] Two authorized users see and hear each other.
-- [ ] Status badges reflect signaling, peer, and ICE state.
+- [x] Status badges reflect signaling, peer, and ICE state.
 
 ## Phase 5: Media Status And Cleanup
 
@@ -331,14 +331,14 @@ Goal: make call state understandable and reliable.
 
 Steps:
 
-- [ ] Emit `video-media-toggle` when local audio/video enabled state changes.
-- [ ] Show remote labels for muted mic and camera off.
-- [ ] Add `End call` button.
-- [ ] Emit `leave-video-room` on end call.
-- [ ] Handle tab close and socket disconnect server-side.
+- [x] Emit `video-media-toggle` when local audio/video enabled state changes.
+- [x] Show remote labels for muted mic and camera off.
+- [x] Add `End call` button.
+- [x] Emit `leave-video-room` on end call.
+- [x] Handle tab close and socket disconnect server-side.
 - [ ] Show a user-left message when the remote participant leaves.
-- [ ] Remove local senders and stop tracks on end call.
-- [ ] Clear `video.srcObject` on unmount.
+- [x] Remove local senders and stop tracks on end call.
+- [x] Clear `video.srcObject` on unmount.
 
 Done when:
 

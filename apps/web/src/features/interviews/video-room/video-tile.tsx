@@ -7,6 +7,7 @@ type VideoTileProps = {
   label: string;
   muted?: boolean;
   stream: MediaStream | null;
+  variant?: 'main' | 'preview';
   videoEnabled?: boolean;
 };
 
@@ -15,9 +16,11 @@ export function VideoTile({
   label,
   muted = false,
   stream,
+  variant = 'main',
   videoEnabled = true,
 }: VideoTileProps): React.ReactElement {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isPreview = variant === 'preview';
 
   useEffect(() => {
     const video = videoRef.current;
@@ -34,7 +37,7 @@ export function VideoTile({
   }, [stream]);
 
   return (
-    <div className="relative aspect-video min-h-56 overflow-hidden rounded-lg bg-stone-950">
+    <div className={getTileClassName(isPreview)}>
       {stream ? (
         <video
           ref={videoRef}
@@ -44,7 +47,7 @@ export function VideoTile({
           playsInline
         />
       ) : (
-        <div className="flex h-full min-h-56 items-center justify-center px-4 text-sm font-medium text-stone-300">
+        <div className={getPlaceholderClassName(isPreview)}>
           Waiting for video
         </div>
       )}
@@ -61,6 +64,20 @@ export function VideoTile({
       </div>
     </div>
   );
+}
+
+function getTileClassName(isPreview: boolean): string {
+  if (isPreview) {
+    return 'relative aspect-video overflow-hidden rounded-lg bg-stone-950 shadow-lg ring-1 ring-white/20';
+  }
+
+  return 'relative aspect-video min-h-56 overflow-hidden rounded-lg bg-stone-950';
+}
+
+function getPlaceholderClassName(isPreview: boolean): string {
+  const baseClassName = 'flex h-full items-center justify-center px-4 text-center text-sm font-medium text-stone-300';
+
+  return isPreview ? baseClassName : `${baseClassName} min-h-56`;
 }
 
 function getMediaStatusLabel(audioEnabled: boolean, videoEnabled: boolean): string {
