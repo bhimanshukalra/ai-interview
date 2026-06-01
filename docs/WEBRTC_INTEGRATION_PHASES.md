@@ -322,7 +322,7 @@ Steps:
 
 Done when:
 
-- [ ] Two authorized users see and hear each other.
+- [x] Two authorized users see and hear each other.
 - [x] Status badges reflect signaling, peer, and ICE state.
 
 ## Phase 5: Media Status And Cleanup
@@ -342,9 +342,9 @@ Steps:
 
 Done when:
 
-- [ ] Remote user sees mic/camera status changes.
-- [ ] End call cleans up local media and notifies the remote user.
-- [ ] Tab close/reload removes the participant from the room.
+- [x] Remote user sees mic/camera status changes.
+- [x] End call cleans up local media and notifies the remote user.
+- [x] Tab close/reload removes the participant from the room.
 
 ## Phase 6: Interview App Integration
 
@@ -362,8 +362,8 @@ Steps:
 
 Done when:
 
-- [ ] An interview participant can start/join a video call from the interview session.
-- [ ] Code editor, written answer, and video controls can be used together.
+- [x] An interview participant can start/join a video call from the interview session.
+- [x] Code editor, written answer, and video controls can be used together.
 
 ## Phase 7: Reconnect And Hardening
 
@@ -381,8 +381,8 @@ Steps:
 
 Done when:
 
-- [ ] Refresh and reconnect behavior is predictable.
-- [ ] Failure states are visible without leaving camera/mic active.
+- [x] Refresh and reconnect behavior is predictable.
+- [x] Failure states are visible without leaving camera/mic active.
 
 ## Phase 8: Future Multi-Participant Shape
 
@@ -402,21 +402,21 @@ The two-person implementation should use data structures that can evolve toward 
 
 ## Manual Acceptance Checklist
 
-- [ ] Owner can join a video room.
-- [ ] Candidate participant can join the same video room.
-- [ ] Interviewer participant can join the same video room.
-- [ ] Unauthorized user cannot join.
-- [ ] Both participants see local preview.
-- [ ] Both participants see remote video.
-- [ ] Both participants hear remote audio.
-- [ ] Mic mute updates local track and remote label.
-- [ ] Camera off updates local track and remote label.
-- [ ] End call stops camera/mic access.
-- [ ] End call notifies the remote participant.
-- [ ] Tab close/reload removes the participant.
-- [ ] Signaling, peer, and ICE statuses update.
-- [ ] Permission denial shows a useful error.
-- [ ] Written answer and code editor still work while video is active.
+- [x] Owner can join a video room.
+- [x] Candidate participant can join the same video room.
+- [x] Interviewer participant can join the same video room.
+- [x] Unauthorized user cannot join.
+- [x] Both participants see local preview.
+- [x] Both participants see remote video.
+- [x] Both participants hear remote audio.
+- [x] Mic mute updates local track and remote label.
+- [x] Camera off updates local track and remote label.
+- [x] End call stops camera/mic access.
+- [x] End call notifies the remote participant.
+- [x] Tab close/reload removes the participant.
+- [x] Signaling, peer, and ICE statuses update.
+- [x] Permission denial shows a useful error.
+- [x] Written answer and code editor still work while video is active.
 
 ## Known Limitations For First Version
 
