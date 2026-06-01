@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { RtcIceCandidate, RtcSessionDescription, VideoParticipant } from '@ai-interview/shared';
 import { useLocalMedia } from './use-local-media';
 import { usePeerConnection } from './use-peer-connection';
@@ -21,6 +21,7 @@ const statusLabel = {
 };
 
 export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): React.ReactElement {
+  const [callNotice, setCallNotice] = useState<string | null>(null);
   const {
     audioEnabled,
     errorMessage,
@@ -79,6 +80,8 @@ export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): Re
   }
 
   async function handleUserJoined(participant: VideoParticipant): Promise<void> {
+    setCallNotice(null);
+
     if (participant.socketId === selfParticipant?.socketId || remoteSocketId) {
       return;
     }
@@ -92,11 +95,14 @@ export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): Re
 
   function handleUserLeft(participant: { socketId: string }): void {
     if (participant.socketId === remoteSocketId) {
+      setCallNotice(`${remoteParticipant?.name ?? 'The other participant'} left the call.`);
       clearPeerConnection();
     }
   }
 
   async function handleVideoOffer(payload: { fromSocketId: string; offer: RtcSessionDescription }): Promise<void> {
+    setCallNotice(null);
+
     const answer = await answerOffer(payload.fromSocketId, payload.offer);
 
     if (answer) {
@@ -130,6 +136,7 @@ export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): Re
 
   const handleStopCall = useCallback(
     function handleStopCall(): void {
+      setCallNotice(null);
       leaveVideoRoom();
       clearPeerConnection();
       stopLocalMedia();
@@ -197,6 +204,11 @@ export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): Re
 
       {visibleErrorMessage ? (
         <p className="border-t border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{visibleErrorMessage}</p>
+      ) : null}
+      {callNotice ? (
+        <p className="border-t border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+          {callNotice}
+        </p>
       ) : null}
     </section>
   );

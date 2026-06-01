@@ -336,7 +336,7 @@ Steps:
 - [x] Add `End call` button.
 - [x] Emit `leave-video-room` on end call.
 - [x] Handle tab close and socket disconnect server-side.
-- [ ] Show a user-left message when the remote participant leaves.
+- [x] Show a user-left message when the remote participant leaves.
 - [x] Remove local senders and stop tracks on end call.
 - [x] Clear `video.srcObject` on unmount.
 
@@ -353,12 +353,12 @@ Goal: make video feel native to this product.
 Steps:
 
 - [x] Render `InterviewVideoRoom` in `InterviewSession`.
-- [ ] Join by `interviewId`, not room id or email.
-- [ ] Use authenticated user identity from the existing API token.
-- [ ] Reuse interview participant roles.
-- [ ] Keep video independent from answer saving and code sync.
-- [ ] Add responsive layout for desktop and mobile.
-- [ ] Add loading/error/empty states consistent with existing UI.
+- [x] Join by `interviewId`, not room id or email.
+- [x] Use authenticated user identity from the existing API token.
+- [x] Reuse interview participant roles.
+- [x] Keep video independent from answer saving and code sync.
+- [x] Add responsive layout for desktop and mobile.
+- [x] Add loading/error/empty states consistent with existing UI.
 
 Done when:
 
