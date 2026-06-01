@@ -371,12 +371,12 @@ Goal: make the feature demo-safe.
 
 Steps:
 
-- [ ] Handle signaling reconnect.
-- [ ] Rejoin the video room after socket reconnect.
-- [ ] Recreate peer connection after failed/disconnected peer state when needed.
-- [ ] Add STUN config.
-- [ ] Document TURN as required for production-grade reliability.
-- [ ] Add logs for join, leave, forwarded signaling, forbidden signaling, and cleanup.
+- [x] Handle signaling reconnect.
+- [x] Rejoin the video room after socket reconnect.
+- [x] Recreate peer connection after failed/disconnected peer state when needed.
+- [x] Add STUN config.
+- [x] Document TURN as required for production-grade reliability.
+- [x] Add logs for join, leave, forwarded signaling, forbidden signaling, and cleanup.
 - [ ] Add focused tests for realtime authorization and payload validation.
 
 Done when:
@@ -421,7 +421,7 @@ The two-person implementation should use data structures that can evolve toward 
 ## Known Limitations For First Version
 
 - Two-person call only.
-- No TURN server by default.
+- No TURN server by default. The current STUN-only configuration is useful for local demos and simple networks, but production-grade reliability requires TURN credentials from a managed provider or a self-hosted TURN service.
 - No screen sharing.
 - No device picker.
 - No recording.

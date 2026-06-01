@@ -112,7 +112,14 @@ export function handleLeaveVideoRoom({ io, rawPayload, socket }: VideoRoomHandle
     return;
   }
 
-  removeSocketFromVideoRoom(io, socket);
+  const participant = removeSocketFromVideoRoom(io, socket);
+
+  if (participant) {
+    logRealtimeInfo('video room left', {
+      socketId: socket.id,
+      userId: participant.userId,
+    });
+  }
 }
 
 export function handleVideoOffer({ rawPayload, socket }: VideoSignalInput): void {
@@ -139,6 +146,7 @@ export function handleVideoOffer({ rawPayload, socket }: VideoSignalInput): void
       offer,
     }),
   );
+  logForwardedVideoSignal('video-offer', { roomId, socket, targetSocketId });
 }
 
 export function handleVideoAnswer({ rawPayload, socket }: VideoSignalInput): void {
@@ -165,6 +173,7 @@ export function handleVideoAnswer({ rawPayload, socket }: VideoSignalInput): voi
       interviewId,
     }),
   );
+  logForwardedVideoSignal('video-answer', { roomId, socket, targetSocketId });
 }
 
 export function handleVideoIceCandidate({ rawPayload, socket }: VideoSignalInput): void {
@@ -191,6 +200,7 @@ export function handleVideoIceCandidate({ rawPayload, socket }: VideoSignalInput
       interviewId,
     }),
   );
+  logForwardedVideoSignal('video-ice-candidate', { roomId, socket, targetSocketId });
 }
 
 export function handleVideoMediaToggle({ rawPayload, socket }: VideoSignalInput): void {
@@ -207,6 +217,12 @@ export function handleVideoMediaToggle({ rawPayload, socket }: VideoSignalInput)
   const participant = room?.participants.get(socket.id);
 
   if (!room || !participant || !socket.data.authorizedVideoRoomIds?.has(roomId)) {
+    logRealtimeWarning('video media toggle rejected: unauthorized room', {
+      kind,
+      roomId,
+      socketId: socket.id,
+      userId: socket.data.user?.id,
+    });
     emitVideoRoomError(socket, 'FORBIDDEN', 'You cannot update media state for this video room.');
     return;
   }
@@ -226,6 +242,13 @@ export function handleVideoMediaToggle({ rawPayload, socket }: VideoSignalInput)
       kind,
     }),
   );
+  logRealtimeInfo('video media state updated', {
+    enabled,
+    kind,
+    roomId,
+    socketId: socket.id,
+    userId: participant.userId,
+  });
 }
 
 function canSignalVideoPeer(socket: CodeRoomSocket, roomId: string, targetSocketId: string): boolean {
@@ -252,4 +275,25 @@ function canSignalVideoPeer(socket: CodeRoomSocket, roomId: string, targetSocket
   }
 
   return true;
+}
+
+function logForwardedVideoSignal(
+  eventName: 'video-answer' | 'video-ice-candidate' | 'video-offer',
+  {
+    roomId,
+    socket,
+    targetSocketId,
+  }: {
+    roomId: string;
+    socket: CodeRoomSocket;
+    targetSocketId: string;
+  },
+): void {
+  logRealtimeInfo('video signaling forwarded', {
+    eventName,
+    roomId,
+    socketId: socket.id,
+    targetSocketId,
+    userId: socket.data.user?.id,
+  });
 }

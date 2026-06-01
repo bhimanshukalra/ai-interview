@@ -48,6 +48,7 @@ export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): Re
     remoteStream,
   } = usePeerConnection({
     localStream: stream,
+    onConnectionRestartOffer: handleConnectionRestartOffer,
     onIceCandidate: handleLocalIceCandidate,
   });
   const {
@@ -77,6 +78,10 @@ export function InterviewVideoRoom({ interviewId }: InterviewVideoRoomProps): Re
 
   function handleLocalIceCandidate(targetSocketId: string, candidate: RTCIceCandidateInit): void {
     sendIceCandidate(targetSocketId, candidate);
+  }
+
+  function handleConnectionRestartOffer(targetSocketId: string, offer: RTCSessionDescriptionInit): void {
+    sendOffer(targetSocketId, offer);
   }
 
   async function handleUserJoined(participant: VideoParticipant): Promise<void> {

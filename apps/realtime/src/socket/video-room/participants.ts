@@ -51,6 +51,11 @@ export function removeSocketFromVideoRoom(io: CodeRoomServer, socket: CodeRoomSo
         userId: participant.userId,
       }),
     );
+    logRealtimeInfo('video participant removed', {
+      roomId,
+      socketId: participant.socketId,
+      userId: participant.userId,
+    });
   }
 
   emitVideoParticipantsChange(io, room);

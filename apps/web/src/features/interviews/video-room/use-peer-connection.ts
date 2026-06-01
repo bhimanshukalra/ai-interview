@@ -7,6 +7,7 @@ type IceConnectionStatus = RTCIceConnectionState | 'idle';
 
 type UsePeerConnectionOptions = {
   localStream: MediaStream | null;
+  onConnectionRestartOffer: (targetSocketId: string, offer: RTCSessionDescriptionInit) => void;
   onIceCandidate: (targetSocketId: string, candidate: RTCIceCandidateInit) => void;
 };
 
@@ -29,12 +30,15 @@ const peerConnectionConfig: RTCConfiguration = {
 
 export function usePeerConnection({
   localStream,
+  onConnectionRestartOffer,
   onIceCandidate,
 }: UsePeerConnectionOptions): UsePeerConnectionResult {
+  const connectionRestartHandlerRef = useRef(onConnectionRestartOffer);
   const iceCandidateHandlerRef = useRef(onIceCandidate);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const remoteSocketIdRef = useRef<string | null>(null);
+  const restartInFlightRef = useRef(false);
   const [connectionState, setConnectionState] = useState<PeerConnectionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [iceConnectionState, setIceConnectionState] = useState<IceConnectionStatus>('idle');
@@ -42,14 +46,16 @@ export function usePeerConnection({
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
+    connectionRestartHandlerRef.current = onConnectionRestartOffer;
     iceCandidateHandlerRef.current = onIceCandidate;
-  }, [onIceCandidate]);
+  }, [onConnectionRestartOffer, onIceCandidate]);
 
   const clearPeerConnection = useCallback(function clearPeerConnection(): void {
     peerConnectionRef.current?.close();
     peerConnectionRef.current = null;
     pendingIceCandidatesRef.current = [];
     remoteSocketIdRef.current = null;
+    restartInFlightRef.current = false;
     setConnectionState('idle');
     setErrorMessage(null);
     setIceConnectionState('idle');
@@ -58,6 +64,28 @@ export function usePeerConnection({
   }, []);
 
   useEffect(() => clearPeerConnection, [clearPeerConnection]);
+
+  const restartPeerConnection = useCallback(async function restartPeerConnection(
+    peerConnection: RTCPeerConnection,
+    targetSocketId: string,
+  ): Promise<void> {
+    if (restartInFlightRef.current || peerConnection.signalingState !== 'stable') {
+      return;
+    }
+
+    restartInFlightRef.current = true;
+
+    try {
+      const offer = await peerConnection.createOffer({ iceRestart: true });
+      await peerConnection.setLocalDescription(offer);
+      connectionRestartHandlerRef.current(targetSocketId, serializeSessionDescription(offer));
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage('Could not reconnect the peer connection.');
+    } finally {
+      restartInFlightRef.current = false;
+    }
+  }, []);
 
   const createPeerConnection = useCallback(
     function createPeerConnection(targetSocketId: string): RTCPeerConnection | null {
@@ -108,6 +136,15 @@ export function usePeerConnection({
 
       peerConnection.onconnectionstatechange = function handleConnectionStateChange(): void {
         setConnectionState(peerConnection.connectionState);
+
+        if (peerConnection.connectionState === 'disconnected') {
+          setErrorMessage('Peer connection disconnected. Waiting for the network to recover.');
+        }
+
+        if (peerConnection.connectionState === 'failed') {
+          setErrorMessage('Peer connection failed. Trying to reconnect the call.');
+          void restartPeerConnection(peerConnection, targetSocketId);
+        }
       };
 
       peerConnection.oniceconnectionstatechange = function handleIceConnectionStateChange(): void {
@@ -116,7 +153,7 @@ export function usePeerConnection({
 
       return peerConnection;
     },
-    [clearPeerConnection, localStream],
+    [clearPeerConnection, localStream, restartPeerConnection],
   );
 
   const flushPendingIceCandidates = useCallback(async function flushPendingIceCandidates(): Promise<void> {
