@@ -377,7 +377,7 @@ Steps:
 - [x] Add STUN config.
 - [x] Document TURN as required for production-grade reliability.
 - [x] Add logs for join, leave, forwarded signaling, forbidden signaling, and cleanup.
-- [ ] Add focused tests for realtime authorization and payload validation.
+- [x] Add focused tests for realtime authorization and payload validation.
 
 Done when:
 

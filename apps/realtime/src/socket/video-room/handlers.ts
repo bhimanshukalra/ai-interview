@@ -14,7 +14,11 @@ import {
   VideoRoomSocketEvent,
   VideoUserJoinedPayloadSchema,
 } from '@ai-interview/shared';
-import { canAccessVideoRoom, type RealtimeDatabase } from '../../db';
+import {
+  canAccessVideoRoom as canAccessVideoRoomFromDb,
+  type RealtimeDatabase,
+  type VideoRoomAccess,
+} from '../../db';
 import { logRealtimeInfo, logRealtimeWarning } from '../../logger';
 import type { CodeRoomServer, CodeRoomSocket } from '../types';
 import { emitVideoRoomError } from './errors';
@@ -22,6 +26,7 @@ import { emitVideoParticipantsChange, removeSocketFromVideoRoom } from './partic
 import { getOrCreateVideoRoom, getVideoRoom, getVideoRoomParticipants } from './rooms';
 
 type VideoRoomHandlerInput = {
+  canAccessVideoRoom?: (db: RealtimeDatabase, input: { interviewId: string; userId: string }) => Promise<VideoRoomAccess | null>;
   db: RealtimeDatabase | null;
   io: CodeRoomServer;
   rawPayload: unknown;
@@ -33,7 +38,13 @@ type VideoSignalInput = {
   socket: CodeRoomSocket;
 };
 
-export async function handleJoinVideoRoom({ db, io, rawPayload, socket }: VideoRoomHandlerInput): Promise<void> {
+export async function handleJoinVideoRoom({
+  canAccessVideoRoom,
+  db,
+  io,
+  rawPayload,
+  socket,
+}: VideoRoomHandlerInput): Promise<void> {
   const parsedPayload = JoinVideoRoomPayloadSchema.safeParse(rawPayload);
 
   if (!parsedPayload.success) {
@@ -49,7 +60,8 @@ export async function handleJoinVideoRoom({ db, io, rawPayload, socket }: VideoR
   }
 
   const { interviewId } = parsedPayload.data;
-  const access = await canAccessVideoRoom(db, { interviewId, userId: user.id });
+  const authorizeVideoRoom = canAccessVideoRoom ?? canAccessVideoRoomFromDb;
+  const access = await authorizeVideoRoom(db, { interviewId, userId: user.id });
 
   if (!access) {
     logRealtimeWarning('video room join rejected: forbidden', {
