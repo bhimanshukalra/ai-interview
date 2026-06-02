@@ -53,6 +53,14 @@ flowchart LR
 - **WebRTC interview room:** The app includes a two-person video room with authenticated signaling, offer/answer exchange, ICE candidates, mute/camera controls, connection state, reconnect handling, and manual smoke-test coverage.
 - **Focused tests:** Realtime video-room tests cover authorization, malformed payloads, forbidden signaling, offer forwarding, leave cleanup, and disconnect cleanup.
 
+## Tradeoffs And Limitations
+
+- **Two-person WebRTC by design:** The interview use case is candidate plus interviewer, so the first version keeps one peer connection instead of adding multi-participant grids, per-peer stream maps, and conferencing controls.
+- **STUN now, TURN later:** Local and simple-network demos work with STUN, while production-grade reliability would require TURN credentials from a managed provider or self-hosted TURN service.
+- **AI evaluates code without executing it:** Code is included in Gemini evaluation and reports, but sandboxed execution is deferred to avoid unsafe local execution and unpaid third-party runner dependencies.
+- **Focused test coverage:** The realtime video-room boundary has targeted tests, but broader API ownership, answer submission, report generation, and deployed multi-session flows remain future confidence work.
+- **Deployment is documented, not fully proven:** Vercel, Cloudflare Workers, Neon, and realtime deployment settings are described, but a production-like end-to-end smoke test is still a launch checklist item.
+
 ## Commands
 
 ```bash
@@ -161,7 +169,7 @@ Before calling the MVP done:
 - [x] Add a concise product pitch at the top of the README.
 - [x] Add an architecture diagram covering web, API, realtime, shared contracts, database, Gemini, collaborative editor, and WebRTC signaling.
 - [x] Add an engineering highlights section for auth, shared schemas, AI prompt hardening, collaborative editing, WebRTC, and focused tests.
-- [ ] Add a tradeoffs and limitations section that frames deferred work intentionally.
+- [x] Add a tradeoffs and limitations section that frames deferred work intentionally.
 - [ ] Add a demo video or GIF to the README.
 - [ ] Add screenshots for dashboard, interview setup, interview session, report, collaborative editor, and video room.
 - [ ] Add a live demo link if hosting is practical.
@@ -198,10 +206,3 @@ WebRTC is implemented for a two-person interview call. Multi-participant video, 
 - [x] Harden production operations: secret rotation notes, deployment smoke checks, logging review, and failure monitoring.
 - [ ] Improve interview UX: question navigation, report readability, and clearer next actions.
 - [ ] Prepare production launch checklist: seeded manual test plan, realtime deployment verification, rollback notes, and known limitations.
-
-## Known Limitations
-
-- WebRTC currently supports a two-person interview call only; production-grade reliability still needs TURN configuration.
-- Sandboxed code execution is not implemented yet; code is evaluated by AI review, not by running user code.
-- Collaborative editor and WebRTC acceptance still need full multi-session smoke testing in a deployed or production-like environment.
-- Automated test coverage is still intentionally small and needs expansion before production launch.
