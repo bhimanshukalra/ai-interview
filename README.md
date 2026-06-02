@@ -11,6 +11,39 @@ Built with Next.js, Hono, Socket.IO/Yjs, WebRTC, Gemini, PostgreSQL, and shared 
 - `apps/realtime` - Socket.IO/Yjs collaborative code-room and WebRTC signaling service
 - `packages/shared` - shared Zod schemas and TypeScript types
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Browser["Candidate / interviewer browser"]
+  Web["apps/web\nNext.js UI"]
+  API["apps/api\nHono API"]
+  Realtime["apps/realtime\nSocket.IO signaling + Yjs sync"]
+  Shared["packages/shared\nZod schemas + TypeScript contracts"]
+  Database["PostgreSQL / Neon"]
+  Gemini["Gemini API"]
+  CodeEditor["Collaborative code editor\nMonaco + Yjs"]
+  WebRTC["WebRTC media\npeer-to-peer audio/video"]
+
+  Browser --> Web
+  Web --> API
+  Web --> Realtime
+  Web --> CodeEditor
+  Web --> WebRTC
+
+  API --> Database
+  API --> Gemini
+  API --> Shared
+
+  Realtime --> Database
+  Realtime --> Shared
+  Realtime --> CodeEditor
+  Realtime --> WebRTC
+
+  CodeEditor <--> Realtime
+  Browser <--> WebRTC
+```
+
 ## Commands
 
 ```bash
@@ -117,7 +150,7 @@ Before calling the MVP done:
 ## Project Showcase TODO
 
 - [x] Add a concise product pitch at the top of the README.
-- [ ] Add an architecture diagram covering web, API, realtime, shared contracts, database, Gemini, collaborative editor, and WebRTC signaling.
+- [x] Add an architecture diagram covering web, API, realtime, shared contracts, database, Gemini, collaborative editor, and WebRTC signaling.
 - [ ] Add an engineering highlights section for auth, shared schemas, AI prompt hardening, collaborative editing, WebRTC, and focused tests.
 - [ ] Add a tradeoffs and limitations section that frames deferred work intentionally.
 - [ ] Add a demo video or GIF to the README.
