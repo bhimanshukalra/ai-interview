@@ -44,6 +44,15 @@ flowchart LR
   Browser <--> WebRTC
 ```
 
+## Engineering Highlights
+
+- **Authentication and ownership:** JWT-backed sessions protect interview data and realtime room access, with owner/participant roles reused across API, collaborative editor, and video rooms.
+- **Shared contracts:** Request, response, code-room, and video-room payloads are defined with shared Zod schemas so the API, web app, and realtime service validate the same shapes.
+- **AI prompt hardening:** Gemini prompts treat user-provided interview inputs, answers, and code as untrusted content, keeping instructions separate from candidate text and requiring structured evaluator output.
+- **Collaborative editing:** Monaco, Yjs, and Socket.IO provide realtime code sync, presence, reconnect handling, role-aware access, answer persistence, and report rendering.
+- **WebRTC interview room:** The app includes a two-person video room with authenticated signaling, offer/answer exchange, ICE candidates, mute/camera controls, connection state, reconnect handling, and manual smoke-test coverage.
+- **Focused tests:** Realtime video-room tests cover authorization, malformed payloads, forbidden signaling, offer forwarding, leave cleanup, and disconnect cleanup.
+
 ## Commands
 
 ```bash
@@ -151,7 +160,7 @@ Before calling the MVP done:
 
 - [x] Add a concise product pitch at the top of the README.
 - [x] Add an architecture diagram covering web, API, realtime, shared contracts, database, Gemini, collaborative editor, and WebRTC signaling.
-- [ ] Add an engineering highlights section for auth, shared schemas, AI prompt hardening, collaborative editing, WebRTC, and focused tests.
+- [x] Add an engineering highlights section for auth, shared schemas, AI prompt hardening, collaborative editing, WebRTC, and focused tests.
 - [ ] Add a tradeoffs and limitations section that frames deferred work intentionally.
 - [ ] Add a demo video or GIF to the README.
 - [ ] Add screenshots for dashboard, interview setup, interview session, report, collaborative editor, and video room.
