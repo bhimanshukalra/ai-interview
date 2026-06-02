@@ -1,6 +1,8 @@
 # AI Interview
 
-AI interview MVP built with Next.js, Hono, Socket.IO/Yjs, WebRTC, and shared TypeScript schemas.
+AI Interview is a full-stack interview practice platform where candidates can answer AI-generated questions, collaborate in a realtime code editor, join a two-person video interview room, and review structured AI feedback in a final report.
+
+Built with Next.js, Hono, Socket.IO/Yjs, WebRTC, Gemini, PostgreSQL, and shared TypeScript/Zod contracts.
 
 ## Structure
 
@@ -114,7 +116,7 @@ Before calling the MVP done:
 
 ## Project Showcase TODO
 
-- [ ] Add a concise product pitch at the top of the README.
+- [x] Add a concise product pitch at the top of the README.
 - [ ] Add an architecture diagram covering web, API, realtime, shared contracts, database, Gemini, collaborative editor, and WebRTC signaling.
 - [ ] Add an engineering highlights section for auth, shared schemas, AI prompt hardening, collaborative editing, WebRTC, and focused tests.
 - [ ] Add a tradeoffs and limitations section that frames deferred work intentionally.
